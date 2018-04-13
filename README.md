@@ -1,3 +1,5 @@
+![BakeChain](https://bakechain.github.io/assets/img/logo.png)
+
 Bakechain is a multi-platform, secure light "baker" for the [Tezos protocol](https://www.tezos.com/) and built using [Electron](https://electronjs.org/). Users can participate in the baking process without having to install and maintain a full Tezos-node. Bakechain relies on access to public tezos-nodes via the RPC API, however a user can choose to point the software at their own node if they wish.
 
 Follow [@BakeChainon](https://twitter.com/BakeChain) Twitter to keep up to date with the latest announcements.
