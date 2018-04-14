@@ -1,4 +1,4 @@
-![BakeChain](https://bakechain.github.io/assets/img/logo.png)
+![BakeChain](https://bakechain.github.io/assets/img/logo2.png)
 
 ***Currently in alpha-release stage - please report any bugs, issues and errors here***
 
