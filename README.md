@@ -1,4 +1,4 @@
-![BakeChain](https://github.com/bakechain/bakechain.github.io/raw/master/assets/img/logo.png)
+<img src="https://github.com/bakechain/bakechain.github.io/raw/master/assets/img/logo.png" width="600">
 
 ***Currently in alpha-release stage - please report any bugs, issues and errors here***
 
@@ -15,6 +15,8 @@ To install, please select from the options below:
 
 ## Documentation
 
+<img src="https://github.com/bakechain/bakechain.github.io/raw/master/assets/img/appscreen1.jpg" width="400">
+
 **1) Download and install Bakechain using one of the links above**
 
 **2) Generate a new baker, or restore your existing baker from the CLI tool**
@@ -28,7 +30,9 @@ _To export the secret/private key from the tezos-client, you can run the followi
 
 **4) Hit the "Start Baking" button to initiate the baker - you are baking blocks on Tezos!**
 
-### Interface Guide
+## Interface Guide
+
+<img src="https://github.com/bakechain/bakechain.github.io/raw/master/assets/img/appscreen.jpg" width="400">
 
 **Actual Balance**
 
