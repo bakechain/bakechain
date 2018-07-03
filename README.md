@@ -29,10 +29,15 @@ _To export the secret/private key from the tezos-client, you can run the followi
 ```
 
 _If you are restoring a Fundraiser/ICO wallet, please enter the following_
+
 -The seed words from the PDF file
+
 -The email address from the PDF file
+
 -The password used during the ICO/Fundraiser (not on the PDF file)
+
 -The Public Key Hash/Address (tz1)
+
 
 _You can also enter the activation code from the KYC/AML process if your account hasn't already been activated_  
 
