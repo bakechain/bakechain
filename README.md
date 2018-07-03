@@ -6,29 +6,39 @@ Bakechain is a multi-platform, secure light "baker" for the [Tezos protocol](htt
 
 Follow [@BakeChain](https://twitter.com/BakeChain) on Twitter to keep up to date with the latest announcements.
 
-**Please note - BakeChain is currently in alpha. We strongly recommend that you do not use your contribution details, or any private keys that you wish to use when the mainnet launches. Please ensure you're using fresh keys with the intention to discard them when Tezos launches.**
+**Please note - BakeChain is currently in beta. Although we have taken many safety precautions, you use this software at your own risk.**
 
 ## Installing
 **Note - currently only available for Windows 7 and above - we are currently working on a macOS and Linux build.**
 
-To install, please select from the options below:
+You can check out our latest releases to download and get started.
+
+Once downloaded, extract the contents, and run bakechain_app_0.1.0.exe
 
 ## Documentation
 
 <img src="https://github.com/bakechain/bakechain.github.io/raw/master/assets/img/appscreen1.jpg" width="400">
 
-**1) Download and install Bakechain using one of the links above**
+**1) Download and install Bakechain using the instructions above**
 
-**2) Generate a new baker, or restore your existing baker from the CLI tool**
+**2) Generate a new baker, or restore your existing baker. If you are restoring a baker then here are some tips **
 
 _To export the secret/private key from the tezos-client, you can run the following command:_
 ```no-highlight
 ./tezos-client show identity <identity> --show-secret
 ```
-  
-**3) If your baker has a low balance, please top it up using the [eztz faucet](https://stephenandrews.github.io/eztz/faucet.html)**
 
-**4) Hit the "Start Baking" button to initiate the baker - you are baking blocks on Tezos!**
+_If you are restoring a Fundraiser/ICO wallet, please enter the following_
+-The seed words from the PDF file
+-The email address from the PDF file
+-The password used during the ICO/Fundraiser (not on the PDF file)
+-The Public Key Hash/Address (tz1)
+
+_You can also enter the activation code from the KYC/AML process if your account hasn't already been activated_  
+
+**3) If your baker has a low balance, please top it up. To register as a baker you can't have a 0 balance account, and to begin baking you need at least 10,000XTZ (1 roll) minimum
+
+**4) Hit the "Start Baking" button to initiate the baker - you will begin baking blocks on Tezos (this could take up to 7 cycles/20 days)!**
 
 ## Interface Guide
 
