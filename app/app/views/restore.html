@@ -1,0 +1,94 @@
+<div class="row">
+  <div class="col-md-4">
+    <img class="logoBig" src="images/logo.png" />
+  </div>
+</div>
+<div class="inner bg3" style="padding:50px">
+    <div class="row">
+      <div class="col-md-8">
+        <h5>Ready to Bake!</h5>
+        <h3>RESTORE</h3>
+      </div>
+    </div>
+    <div class="row">
+        <div class="col-md-8">
+          <ul class="nav nav-tabs restore" role="tablist">
+            <li role="presentation" class="active"><a ng-click="type=0" data-target="#seed" aria-controls="seed" role="tab" data-toggle="tab">Seed Phrase</a></li>
+            <li role="presentation" class=""><a ng-click="type=1" data-target="#private" aria-controls="private" role="tab" data-toggle="tab">Private Key</a></li>
+            <li role="presentation" class=""><a ng-click="type=2" data-target="#fundraiser" aria-controls="fundraiser" role="tab" data-toggle="tab">Fundraiser</a></li>
+          </ul>
+
+          <!-- Tab panes -->
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="seed">
+              <div class="row">
+                <div class="col-md-10">
+                  <div class="form-group">
+                    <label>Seed Words</label>
+                    <input autocomplete="false" type="text" class="form-control" placeholder="Enter Seed Words" ng-model="seed" />
+                  </div>
+                </div>
+                <div class="col-md-8">
+                  <div class="form-group">
+                    <label>Passphrase</label>
+                      <input autocomplete="false" type="password" class="form-control" ng-model="passphrase" placeholder="Optional Passphrase">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="private">
+              <div class="row">
+                <div class="col-md-10">
+                  <div class="form-group">
+                    <label>Private Key (edsk...)</label>
+                    <input autocomplete="false" type="password" class="form-control" placeholder="Enter Private Key" ng-model="privatekey" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="fundraiser">
+              <div class="row">
+                <div class="col-md-10">
+                  <div class="form-group">
+                    <label>Seed Words</label>
+                    <input autocomplete="false" type="text" class="form-control" placeholder="Enter Seed Words" ng-model="seed" />
+                  </div>
+                </div>
+                <div class="col-md-5">
+                  <div class="form-group">
+                    <label>Email</label>
+                      <input autocomplete="false" type="text" class="form-control" ng-model="email" placeholder="Email">
+                  </div>
+                </div>
+                <div class="col-md-5">
+                  <div class="form-group">
+                    <label>Password</label>
+                      <input autocomplete="false" type="password" class="form-control" ng-model="password" placeholder="Password">
+                  </div>
+                </div>
+                <div class="col-md-8">
+                  <div class="form-group">
+                    <label>Address/Public Key Hash (tz1)</label>
+                      <input autocomplete="false" type="text" class="form-control" ng-model="tz1" placeholder="tz1...">
+                  </div>
+                </div>
+                <div class="col-md-8">
+                  <div class="form-group">
+                    <label>Activation Code</label>
+                      <input autocomplete="false" type="text" class="form-control" ng-model="code" placeholder="Only enter if your account isn't active yet">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 col-xs-6">
+          <a ng-click="restore()" class="btn btn-primary btn-block">Restore <i class="fas fa-long-arrow-alt-right"></i></a>
+        </div>
+        <div class="col-md-3 col-xs-6">
+          <a ng-click="cancel()" class="btn btn-secondary btn-block">Cancel <i class="fas fa-times"></i></a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,29 @@
+<div class="row">
+  <div class="col-md-4">
+    <img class="logoBig" src="images/logo.png" />
+  </div>
+</div>
+<div class="inner bg4" style="padding:50px">
+    <div class="row">
+      <div class="col-md-12">
+        <h5>Ready to Bake!</h5>
+        <h3>Enter Password<br />To Unlock</h3>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-4">
+          <div class="form-group">
+              <label for="exampleInputEmail1">Enter Password</label>
+              <input type="password" class="form-control" ng-model="password">
+            </div>
+      </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 col-xs-6">
+          <a ng-click="unlock()" class="btn btn-primary btn-block">Unlock <i class="fas fa-long-arrow-alt-right"></i></a>
+        </div>
+        <div class="col-md-3 col-xs-6">
+          <a ng-click="clear()" class="btn btn-secondary btn-block">Clear Baker <i class="fas fa-times"></i></a>
+        </div>
+    </div>
+</div>

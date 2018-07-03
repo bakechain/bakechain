@@ -1,0 +1,36 @@
+<div class="row">
+  <div class="col-md-4">
+    <img class="logoBig" src="images/logo.png" />
+  </div>
+</div>
+<div class="inner bg1" style="padding:50px">
+    <div class="row">
+      <div class="col-md-8">
+        <h5>Ready to Bake!</h5>
+        <h3>Create a <br />New Baker</h3>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-8">
+        <p class="mnemonic">
+          {{mnemonic}}<a ng-click="newMnemonic()"><i class="fas fa-sync"></i></a>
+        </p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-4">
+        <div class="form-group">
+            <label>Optional passphrase</label>
+            <input type="password" class="form-control" ng-model="passphrase" placeholder="">
+        </div>
+      </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 col-xs-6">
+          <a ng-click="create()" class="btn btn-primary btn-block">Create <i class="fas fa-long-arrow-alt-right"></i></a>
+        </div>
+        <div class="col-md-3 col-xs-6">
+          <a ng-click="cancel()" class="btn btn-secondary btn-block">Cancel <i class="fas fa-times"></i></a>
+        </div>
+    </div>
+</div>

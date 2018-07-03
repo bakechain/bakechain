@@ -1,0 +1,125 @@
+<div class="row">
+  <div class="col-md-4">
+    <img class="logoBig" src="images/logo.png" />
+  </div>
+  <div class="col-md-4 text-center status stat{{status}}">
+    Status : <span>{{statuses[status]}}</span>
+  </div>
+  <div class="col-md-4 text-right topBtns">
+      <!--<a ng-click="settings()" class="btn btn-icon btn-clear"><i class="fa fa-cog" aria-hidden="true"></i></a>-->
+      <a ng-click="lock()" class="btn btn-icon btn-default">Logout <i class="fa fa-lock" aria-hidden="true"></i></a>
+  </div>
+</div>
+<div class="inner main" style="margin:0px;margin-top: 20px;">
+    
+    <div class="row">
+      <div class="col-md-3 sidebar">
+        <h4>My Balance</h4>
+        <span class="balance">{{formatTez(baker.balance)}}</span>
+        <ul>
+          <li ng-show="baker.actual != baker.balance"><span>Actual Balance:</span> {{formatTez(baker.actual)}}</li>
+          <li ng-show="baker.actual != baker.balance">&nbsp;&nbsp;+<span>Frozen Bonds:</span> {{formatTez(baker.frozen)}}</li>
+          <li ng-show="baker.actual != baker.balance">&nbsp;&nbsp;+<span>Unpaid Rewards:</span> {{formatTez(baker.rewards)}}</li>
+          <li><span>Delegated Stake:</span> {{formatTez(baker.delegated)}}</li>
+          <li><span>Staking Balance:</span> {{formatTez(baker.staking)}}</li>
+          <li><span>Rolls:</span> {{baker.rolls}}</li>
+          <li><span>Excess:</span> {{formatTez(baker.excess)}}</li>
+          <li><span>Stakers:</span> {{baker.stakers}}</li>
+          <li><span>Capacity:</span> {{formatPercent(baker.delegated/(((baker.staking-baker.delegated)/.0825)-(baker.staking-baker.delegated)))}}</li>
+        </ul>
+        <ul>
+          <li><span>Baked Blocks:</span> {{baker.bakes}}</li>
+          <li><span>Burnt Blocks:</span> {{baker.misses}}</li>
+          <li><span>Steals:</span> {{baker.steals}}</li>
+          <!--<li><span>Endorsements:</span> {{baker.endorsements}}</li>-->
+          <li><span>Bake Rate:</span> {{formatPercent((baker.bakes-baker.steals)/(baker.bakes+baker.misses-baker.steals))}}</li>
+        </ul>
+        <ul>
+          <li><span>Current Cycle:</span> {{baker.cycle}}</li>
+          <li><span>Current Level:</span> {{baker.level}}</li>
+          <li><span>Upcoming Levels</span></li>
+          <li>&nbsp;&nbsp;-<span>Bake:</span> {{baker.nextBake}}</li>
+          <li>&nbsp;&nbsp;-<span>Endorsement:</span> {{baker.nextEndorse}}</li>
+          <li>&nbsp;&nbsp;-<span>Reward:</span> {{baker.nextLevel}}</li>
+          <li><span>Next Reward:</span> {{formatTez(baker.nextReward)}}</li>
+        </ul>
+      </div>
+      <div class="col-md-9 mainArea">
+    
+    <div class="row topArea">
+        <div class="col-md-3 avarea">
+          <blocky class="avatar" seed='{{pkh}}' size='8' scale='16'></blocky>
+        </div>
+        <div class="col-md-9" style="padding-top:20px;">
+            <h5 class="address">
+              {{pkh}}
+              <a ng-click="copy()">
+                <i class="far fa-copy"></i>
+              </a>
+              </button>
+            </h5>
+            <p><a target="_blank" href="{{explorerUrl}}{{pkh}}">View on tzscan <i class="fas fa-external-link-alt"></i></a></p>
+            <div class="row">
+              <div class="col-md-12">
+                <a ng-show="status == 2" ng-click="startBaker()" class="btn btn-icon btn-default">Start Baking <i class="fa fa-play" ></i></a>
+                <a ng-show="status > 2" ng-click="stopBaker()" class="btn btn-icon btn-default">Stop Baking <i class="fa fa-pause"></i></a>
+        
+                <a ng-click="refreshBaker()" class="btn btn-icon btn-default">Refresh <i class="fa fa-sync" aria-hidden="true"></i></a>
+                <p style="font-size:10px;margin-top:10px;"><strong ng-show="isempty">You need to add XTZ to your account before you can register as a delegate and begin baking</strong></p>
+              </div>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div class="row">
+        <div class="col-md-12">
+
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" role="tablist">
+          <li role="presentation" class="active"><a data-target="#bakes" aria-controls="bakes" role="tab" data-toggle="tab">Bakes</a></li>
+          <li role="presentation" class=""><a data-target="#endorsements" aria-controls="upcoming" role="tab" data-toggle="tab">Endorsements</a></li>
+          <li role="presentation" class=""><a data-target="#rewards" aria-controls="rewards" role="tab" data-toggle="tab">Rewards</a></li>
+        </ul>
+
+        <!-- Tab panes -->
+        <div class="tab-content main">
+          <div role="tabpanel" class="tab-pane active text-center" id="bakes">
+            <strong ng-hide="baker.current.length">No bakes available - please start baking!</strong>
+            
+            <table ng-show="baker.current.length" class="tableList">
+              <thead><th>Level</th><th >Hash</th><th>Priority</th><th>Status</th><th></th></thead>
+              <tr class="tableListRow" ng-repeat="item in baker.current">
+                <td>{{item.level}}</td><td>{{item.hash.substr(0,20)}}...</td><td>{{item.priority}}</td><td style="text-transform:uppercase;" class="style-{{item.status}}">{{item.status}}</td><td><a target="_blank" href="{{explorerUrl}}{{item.hash}}" class="btn btn-small btn-primary">View Online</a></td>
+              </tr>
+            </table>
+          </div>
+          <div role="tabpanel" class="tab-pane text-center" id="endorsements">
+            <strong ng-hide="baker.currentEds.length">No endorsements available - please start baking!</strong>
+            
+            <table ng-show="baker.currentEds.length" class="tableList">
+              <thead><th>Level</th><th >Hash</th><th>Priority</th><th>Count</th><th></th></thead>
+              <tr class="tableListRow" ng-repeat="item in baker.currentEds">
+                <td>{{item.level}}</td><td>{{item.hash.substr(0,20)}}...</td><td>{{item.priority}}</td><td>{{item.number}}</td><td><a target="_blank" href="{{explorerUrl}}{{item.hash}}" class="btn btn-small btn-primary">View Online</a></td>
+              </tr>
+            </table>
+          </div>
+          <div role="tabpanel" class="tab-pane text-center" id="rewards">
+            <strong ng-hide="baker.payouts.length">No rewards available - please start baking!</strong>
+            
+            <table ng-show="baker.payouts.length" class="tableList">
+              <thead><th>Level</th><th >Hash</th><th>Priority</th><th>Count</th><th></th></thead>
+              <tr class="tableListRow" ng-repeat="item in baker.payouts">
+                <td>{{item.level}}</td><td>{{item.hash.substr(0,20)}}...</td><td>{{item.priority}}</td><td>{{item.number}}</td><td><a target="_blank" href="{{explorerUrl}}{{item.hash}}" class="btn btn-small btn-primary">View Online</a></td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    
+
+      </div>
+    </div>
+</div>

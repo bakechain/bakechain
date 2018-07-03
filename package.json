@@ -1,0 +1,50 @@
+{
+  "name": "bakechain-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "postinstall": "install-app-deps",
+    "start": "npm install && electron .",
+    "pack": "build --dir",
+    "dist": "build"
+  },
+  "author": "",
+  "license": "ISC",
+  "build": {
+    "appId": "io.bakechain.app",
+    "mac": {
+      "category": "your.app.category.type"
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 110,
+          "y": 150
+        },
+        {
+          "x": 240,
+          "y": 150,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    },
+    "win": {
+      "target": "NSIS"
+    }
+  },
+  "dependencies": {
+    "keytar": "^4.2.1"
+  },
+  "devDependencies": {
+    "electron": "latest",
+    "electron-builder": "^20.18.0"
+  }
+}
