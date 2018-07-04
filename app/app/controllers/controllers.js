@@ -46,7 +46,7 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
       if (keys.pkh != identity.pkh) {
         alert("Sorry, those details do not match - please try again, or go back and create a new account again");
       } else {        
-        $location.path("/encrypt");
+        $location.path("/password");
       }
     };
 }])
@@ -320,6 +320,48 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
       }
     }
 }])
+.controller('SettingsController', ['$scope', '$location', 'Storage', function($scope, $location, Storage) {
+    var identity = {};
+    Storage.loadStore().then(function(ii){
+      $scope.$apply(function(){
+        identity = ii;
+        if (!identity || (!identity.encrypted && !identity.raw)){
+           $location.path('/new');
+        } else if (!identity.encrypted && identity.raw){
+           $location.path('/password');
+        } else if (!identity.raw){
+           $location.path('/unlock');
+        }
+      });
+    });
+    $scope.privateKey = '';
+    $scope.password = '';
+    
+    $scope.show = function(){
+      if (!$scope.password){
+          alert("Please enter your password");
+          return;
+      }
+      window.showLoader();
+      setTimeout(function(){
+        $scope.$apply(function(){
+          try {
+            var raw = sjcl.decrypt(window.eztz.library.pbkdf2.pbkdf2Sync($scope.password, identity.pkh, 30000, 512, 'sha512').toString(), identity.encrypted);
+          } catch(err){
+            alert("Incorrect password");
+            return;
+          }
+          $scope.password = '';
+          $scope.privateKey = raw;
+          window.hideLoader();
+        });
+      }, 100);
+    }
+    
+    $scope.save = function(){
+        $location.path('/main');
+    };
+}])
 .controller('NewController', ['$scope', '$location', 'Storage', function($scope, $location, Storage) {
     var identity = {};
     Storage.loadStore().then(function(ii){
@@ -372,6 +414,8 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
             alert("Your password is too short");
             return;
         }
+        window.showLoader();
+
         try {
           var raw = sjcl.decrypt(window.eztz.library.pbkdf2.pbkdf2Sync($scope.password, identity.pkh, 30000, 512, 'sha512').toString(), identity.encrypted);
         } catch(err){
@@ -384,6 +428,7 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
             encrypted : identity.encrypted,
         };
         Storage.setStore(identity);
+        window.hideLoader();
         $location.path('/main');
     };
 }])

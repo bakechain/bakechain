@@ -33,6 +33,10 @@ app.config(function($routeProvider) {
         templateUrl : "app/views/validate.html",
         controller : "ValidateController",
     })
+    .when("/settings", {
+        templateUrl : "app/views/settings.html",
+        controller : "SettingsController",
+    })
     .otherwise({
         redirectTo: '/new'
     });
