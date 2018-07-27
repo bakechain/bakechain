@@ -1,6 +1,6 @@
 {
-  "name": "bakechain-app",
-  "version": "1.0.0",
+  "name": "bakechain",
+  "version": "0.3.0",
   "description": "",
   "main": "main.js",
   "scripts": {
@@ -9,10 +9,17 @@
     "pack": "build --dir",
     "dist": "build"
   },
-  "author": "",
+  "author": "Stephen Andrews",
   "license": "ISC",
   "build": {
+    "productName": "Bakechain",
     "appId": "io.bakechain.app",
+    "files": [
+      "node_modules/",
+      "app/",
+      "main.js",
+      "package.json"
+    ],
     "mac": {
       "category": "your.app.category.type"
     },
@@ -38,13 +45,18 @@
     },
     "win": {
       "target": "NSIS"
+    },
+    "nsis": {
+      "oneClick": true
+    },
+    "directories": {
+      "output": "releases"
     }
   },
   "dependencies": {
     "keytar": "^4.2.1"
   },
   "devDependencies": {
-    "electron": "latest",
-    "electron-builder": "^20.18.0"
+    "electron": "latest"
   }
 }

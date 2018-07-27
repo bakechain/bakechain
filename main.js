@@ -10,13 +10,13 @@ const shell = require('electron').shell;
 let mainWindow
 function createWindow () {
   mainWindow = new BrowserWindow({width: 970, height: 748, frame: true, useContentSize: true, icon : path.join(__dirname, 'app/icon.png'),webPreferences: {
-    devTools: false
+    devTools: true
 }})
 mainWindow.webContents.on('new-window', function(event, url){
   event.preventDefault();
   shell.openExternal(url);
 });
-mainWindow.setMenu(null);
+//mainWindow.setMenu(null);
   mainWindow.loadURL(url.format({
     pathname: path.join(__dirname, 'app/index.html'),
     protocol: 'file:',
