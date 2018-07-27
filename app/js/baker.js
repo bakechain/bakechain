@@ -1,19 +1,36 @@
-//Constants
-var CONSTANTS = {
-  cycle_length : 4096,
-  max_priority : 16,
-};
-//Setup
-var head, endorsedBlocks = [], noncesToReveal = [], lastLevel = 0, bakedBlocks = [];
-//--Functions
+var head, pendingBlocks = [], endorsedBlocks = [], noncesToReveal = [], lastLevel = 0, bakedBlocks = [];
 function runBaker(keys){
   run(keys);
-  return setInterval(function() { run(keys); }, 10000);
+  return setInterval(function() { run(keys); }, window.CONSTANTS.block_time*1000/2);
 }
 function run(keys){
   logOutput = function(e){    
-    //console.log;
+    if (typeof window.ISDEV != 'undefined')
+      console.log(e);
   };
+  var nb = [];
+  for(var i = 0; i < pendingBlocks.length; i++){
+    var bb = pendingBlocks[i];
+    if (bb.level <= head.header.level) continue; //prune
+    if (dateToTime(getDateNow()) >= dateToTime(bb.timestamp)){
+      eztz.node.query('/injection/block?force=true&chain='+bb.chain_id, bb.data).then(function(hash){
+        if (bb.seed){
+          noncesToReveal.push({
+            hash : hash,
+            seed : bb.seed,
+            level : bb.level
+          });
+          logOutput("+Injected block #" + hash + " at level " + bb.level + " with seed " + bb.seed);
+        } else {
+          logOutput("+Injected block #" + hash + " at level " + bb.level + " with no seed");
+        }
+      }).catch(function(e){
+        logOutput(e);
+      });
+    }
+    else nb.push(bb);
+  }
+  pendingBlocks = nb;
   
   eztz.rpc.getHead().then(function(r){
     head = r;
@@ -23,7 +40,7 @@ function run(keys){
     }
     
     //Check for nonce revealations
-    if ((head.header.level-1) % CONSTANTS.cycle_length === 0) {
+    if ((head.header.level-1) % window.CONSTANTS.cycle_length === 0) {
       logOutput(noncesToReveal.length + " nonces to reveal...");
       if (noncesToReveal.length > 0){
         //Lets reveal the nonce now
@@ -52,18 +69,15 @@ function run(keys){
       return "Nothing to bake this level";
     } else {
       if (bakedBlocks.indexOf(r[0].level) < 0){
-        if (r[0].level == (head.header.level+1) && dateToTime(getDateNow()) >= dateToTime(r[0].estimated_time)){
+        if (r[0].level == (head.header.level+1)){
           logOutput("-Trying to bake "+r[0].level+"/"+r[0].priority+"... ("+r[0].estimated_time+")");
+          bakedBlocks.push((head.header.level+1));
           return bake(keys, head, r[0].priority, r[0].estimated_time).then(function(r){
-            bakedBlocks.push((head.header.level+1));
-            if (r.seed){
-              noncesToReveal.push(r);
-              return "+Injected block #" + r.hash + " at level " + (head.header.level+1) + " with seed " + r.seed;
-            } else {
-              return "+Injected block #" + r.hash + " at level " + (head.header.level+1) + " with no seed";
-            }
+            pendingBlocks.push(r);
+            return "-Added potential bake for level " + (head.header.level+1);
           }).catch(function(e){
-            return "-Couldn't bake";
+            bakedBlocks.pop();
+            return "-Couldn't bake " + (head.header.level+1);
           });
         } else {
           if (r[0].priority == 0){              
@@ -93,7 +107,7 @@ function bake(keys, head, priority, timestamp){
   newLevel = head.header.level+1;
   
   //Check if this is a commitment level
-  if ((newLevel-1) % 32 === 0){
+  if ((newLevel) % (window.CONSTANTS.commitment) === 0){
     var seed = eztz.utility.hexNonce(32),
     seed_hash = eztz.library.sodium.crypto_generichash(32, eztz.utility.hex2buf(seed));
     nonce_hash = eztz.utility.b58cencode(seed_hash, eztz.prefix.nce);
@@ -102,6 +116,7 @@ function bake(keys, head, priority, timestamp){
   
   //Loan up operations from the mempool
   return eztz.node.query('/chains/'+head.chain_id+'/mempool').then(function(r){
+    logOutput(r);
     var addedOps = [];
     for(var i = 0; i < r.applied.length; i++){
       if (addedOps.indexOf(r.applied[i].hash) <0) {
@@ -128,13 +143,16 @@ function bake(keys, head, priority, timestamp){
     };
     return eztz.node.query('/chains/'+head.chain_id+'/blocks/'+head.hash+'/helpers/preapply/block?sort=true&timestamp='+dateToTime(timestamp), header);
   }).then(function(r){
+    logOutput(r);
     logOutput("!Starting POW...");
     return powBake(keys, r.shell_header, priority, seed_hex, head, r.operations);
   }).then(function(r){
     return {
-      hash : r,
-      level : (head.header.level+1),
-      seed : seed_hex
+      timestamp : timestamp,
+      data : r,
+      seed : seed_hex,
+      level : newLevel,
+      chain_id : head.chain_id
     };
   });
 }
@@ -155,29 +173,32 @@ function powBake(keys, shell_header, priority, seed_hex, head, operations){
     }
     operations = ops;
     eztz.node.query('/chains/'+head.chain_id+'/blocks/'+head.hash+'/helpers/forge_block_header', shell_header).then(function(r){
-      var forged = r.block, blockbytes, signed, sopbytes, look = true, pdd;
+      var forged = r.block, signed, sopbytes, start = new Date().getTime();;
       forged = forged.substring(0, forged.length - 22);
-      while(look){
-        
-        pdd = createProtocolData(priority, eztz.utility.buf2hex(eztz.library.sodium.crypto_generichash(8, eztz.utility.hex2buf(eztz.utility.hexNonce(8)))), seed_hex);
-        blockbytes = forged + pdd;
-        if (checkHash(blockbytes + "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")) {
-          look = false;
+      powLoop(forged, priority, seed_hex, 0, function(blockbytes, pdd, att){
+          logOutput("+POW found in " + att + " attemps (" + ((new Date().getTime() - start)/1000).toFixed(3) + " seconds)");
           signed = eztz.crypto.sign(blockbytes, keys.sk, eztz.utility.mergebuf(eztz.watermark.block, eztz.utility.b58cdecode(head.chain_id, eztz.prefix.Net)));
           sopbytes = signed.sbytes;
-          var bh = eztz.utility.b58cencode(eztz.library.sodium.crypto_generichash(32, eztz.utility.hex2buf(sopbytes)), eztz.prefix.b);
-          shell_header['protocol_data'] = pdd;
-          
-          
-          eztz.node.query('/injection/block?force=true&chain='+head.chain_id, {
-            "data": sopbytes,
-            "operations": operations
-          }).then(resolve);
-        }
-      }
+          resolve({
+            data : sopbytes,
+            operations : operations,
+          });
+      });
     });
   });
 }
+
+function powLoop(forged, priority, seed_hex, att, cb){
+  var pdd = createProtocolData(priority, eztz.utility.buf2hex(eztz.library.sodium.crypto_generichash(8, eztz.utility.hex2buf(eztz.utility.hexNonce(8)))), seed_hex);
+  var blockbytes = forged + pdd;
+  att++;
+  if (checkHash(blockbytes + "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")) {
+    cb(blockbytes, pdd, att);
+  } else {
+    setImmediate(powLoop, forged, priority, seed_hex, att, cb);
+  }
+}
+
 function createProtocolData(priority, pow, seed){
   if (typeof seed == "undefined") seed = "";
   if (typeof pow == "undefined") pow = "";

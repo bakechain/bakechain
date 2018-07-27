@@ -123,7 +123,7 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
         $scope.refreshBaker();
       });
     });
-    $scope.explorerUrl = 'http://tzscan.io/';
+    $scope.explorerUrl = window.EXPLORER_URL;
     $scope.status = 0;
     $scope.statuses = ['loading...', 'low balance', 'ready', 'baking'];
     $scope.isEmpty = false;
@@ -187,7 +187,7 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
         }).catch(
           function(e){
             $scope.$apply(function(e){
-            if (e[0].id == 'proto.alpha.implicit.empty_implicit_contract') $scope.isEmpty = true;
+            if (Array.isArray(e) && e.length && typeof e[0].id != 'undefined' && e[0].id == 'proto.alpha.implicit.empty_implicit_contract') $scope.isEmpty = true;
           });
         });
       }
@@ -205,7 +205,6 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
         $scope.baker.stakers = r.delegated_contracts.length;
         if ($scope.baker.staking < 10000000000) {
           $scope.status = 1;
-          $scope.stopBaker();
         } else if ($scope.status < 2) {
           $scope.status = 2;
         }
@@ -225,13 +224,13 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
 
 
       ps.push(eztz.rpc.call('/chains/main/blocks/head/header'))
-      ps.push($http.get("http://45.56.84.80:8338/api/stats?baker="+pkh))
+      ps.push($http.get(window.API_URL+"/stats?baker="+pkh))
       ps.push(eztz.rpc.call('/chains/main/blocks/head/helpers/baking_rights?delegate='+pkh))
       ps.push(eztz.rpc.call('/chains/main/blocks/head/helpers/endorsing_rights?delegate='+pkh))
       ps.push(eztz.rpc.call('/chains/main/blocks/head/helpers/endorsing_rights?delegate='+pkh))
       Promise.all(ps).then(function(values) {
         $scope.$apply(function(){
-          $scope.baker.cycle = Math.floor((values[0].level-2)/4096);
+          $scope.baker.cycle = Math.floor((values[0].level-2)/window.CONSTANTS.cycle_length);
           $scope.baker.level = values[0].level;
            
           if (values[1].status == 200){

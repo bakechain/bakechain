@@ -108,9 +108,9 @@
             <strong ng-hide="baker.payouts.length">No rewards available - please start baking!</strong>
             
             <table ng-show="baker.payouts.length" class="tableList">
-              <thead><th>Level</th><th >Hash</th><th>Priority</th><th>Count</th><th></th></thead>
+              <thead><th>Cycle</th><th>Reward</th><th>Payout Level</th><th>Status</th></thead>
               <tr class="tableListRow" ng-repeat="item in baker.payouts">
-                <td>{{item.level}}</td><td>{{item.hash.substr(0,20)}}...</td><td>{{item.priority}}</td><td>{{item.number}}</td><td><a target="_blank" href="{{explorerUrl}}{{item.hash}}" class="btn btn-small btn-primary">View Online</a></td>
+                <td>{{item.cycle}}</td><td>{{formatTez(item.amount)}}</td><td>{{(128*(item.cycle+5))+1}}</td><td style="text-transform:uppercase;font-weight:bold;"><span style="color:{{((128*(item.cycle+5))+1 >= baker.level ? 'red' : 'green')}}">{{((128*(item.cycle+5))+1 >= baker.level ? 'Frozen' : 'Paid')}}</span></td>
               </tr>
             </table>
           </div>
