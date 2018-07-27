@@ -1,13 +1,12 @@
-var head, pendingBlocks = [], endorsedBlocks = [], noncesToReveal = [], lastLevel = 0, bakedBlocks = [];
+var head, pendingBlocks = [], endorsedBlocks = [], noncesToReveal = [], lastLevel = 0, bakedBlocks = [], logOutput = function(e){    
+  if (typeof window.DEBUGMODE != 'undefined' && window.DEBUGMODE)
+    console.log(e);
+};
 function runBaker(keys){
   run(keys);
-  return setInterval(function() { run(keys); }, window.CONSTANTS.block_time*1000/2);
+  return setInterval(function() { run(keys); }, 1000);
 }
 function run(keys){
-  logOutput = function(e){    
-    if (typeof window.ISDEV != 'undefined')
-      console.log(e);
-  };
   var nb = [];
   for(var i = 0; i < pendingBlocks.length; i++){
     var bb = pendingBlocks[i];
@@ -39,15 +38,13 @@ function run(keys){
       logOutput("-Current level " + head.header.level + " (" + getDateNow() + ")");
     }
     
-    //Check for nonce revealations
     if ((head.header.level-1) % window.CONSTANTS.cycle_length === 0) {
       logOutput(noncesToReveal.length + " nonces to reveal...");
       if (noncesToReveal.length > 0){
-        //Lets reveal the nonce now
+        //TODO: Lets reveal the nonce now
       }
     }
     
-    //Check for endorsements
     if (endorsedBlocks.indexOf(head.hash) < 0){
       eztz.node.query('/chains/'+head.chain_id+'/blocks/'+head.hash+'/helpers/endorsing_rights?level='+head.header.level+"&delegate="+keys.pkh).then(function(rights){
         if (rights.length > 0){
@@ -62,21 +59,20 @@ function run(keys){
     }
 
     //Check for blocks to bake
-    return eztz.node.query('/chains/'+head.chain_id+'/blocks/'+head.hash+'/helpers/baking_rights?level='+(head.header.level+1)+"&delegate="+keys.pkh);
-    
-  }).then(function(r){
-    if (r.length <= 0){
-      return "Nothing to bake this level";
-    } else {
-      if (bakedBlocks.indexOf(r[0].level) < 0){
-        if (r[0].level == (head.header.level+1)){
-          logOutput("-Trying to bake "+r[0].level+"/"+r[0].priority+"... ("+r[0].estimated_time+")");
+    if (bakedBlocks.indexOf(head.header.level+1) < 0){
+      eztz.node.query('/chains/'+head.chain_id+'/blocks/'+head.hash+'/helpers/baking_rights?level='+(head.header.level+1)+"&delegate="+keys.pkh).then(function(r){
+        if (r.length <= 0){
           bakedBlocks.push((head.header.level+1));
+          return "Nothing to bake this level";
+        } else if (dateToTime(getDateNow()) >= (dateToTime(r[0].estimated_time)-(window.CONSTANTS.block_time/2)) && r[0].level == (head.header.level+1)){
+          bakedBlocks.push((head.header.level+1));
+          logOutput("-Trying to bake "+r[0].level+"/"+r[0].priority+"... ("+r[0].estimated_time+")");
           return bake(keys, head, r[0].priority, r[0].estimated_time).then(function(r){
             pendingBlocks.push(r);
             return "-Added potential bake for level " + (head.header.level+1);
           }).catch(function(e){
-            bakedBlocks.pop();
+            //bakedBlocks.splice(bakedBlocks.indexOf(head.header.level+1), 1);
+            //TODO: Add retry
             return "-Couldn't bake " + (head.header.level+1);
           });
         } else {
@@ -86,14 +82,14 @@ function run(keys){
             return "!Nothing to mine - next potential (not guaranteed) block at " + r[0].level + "/" + r[0].priority + " ("+r[0].estimated_time+")...";
           }
         }
-      }
+      }).then(function(r){
+        if (r) logOutput(r);
+        return r;
+      }).catch(function(e){
+        logOutput("!Error", e);
+      });
     }
-  }).then(function(r){
-    if (r) logOutput(r);
-    return r;
-  }).catch(function(e){
-    logOutput("!Error", e);
-  });
+  })
 }
 function forceBake(priority, keys){
   return eztz.rpc.getHead().then(function(r){
