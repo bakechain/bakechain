@@ -207,6 +207,7 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
           $scope.status = 1;
         } else if ($scope.status < 2) {
           $scope.status = 2;
+          $scope.startBaker();
         }
         $scope.baker.rolls = Math.floor($scope.baker.staking/10000000000);
         $scope.baker.excess = $scope.baker.staking-($scope.baker.rolls*10000000000);

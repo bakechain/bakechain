@@ -14,24 +14,24 @@
     
     <div class="row">
       <div class="col-md-3 sidebar">
-        <h4>My Balance</h4>
+        <h4>Balance</h4>
         <span class="balance">{{formatTez(baker.balance)}}</span>
         <ul>
           <li ng-show="baker.actual != baker.balance"><span>Actual Balance:</span> {{formatTez(baker.actual)}}</li>
-          <li ng-show="baker.actual != baker.balance">&nbsp;&nbsp;+<span>Frozen Bonds:</span> {{formatTez(baker.frozen)}}</li>
-          <li ng-show="baker.actual != baker.balance">&nbsp;&nbsp;+<span>Unpaid Rewards:</span> {{formatTez(baker.rewards)}}</li>
-          <li><span>Delegated Stake:</span> {{formatTez(baker.delegated)}}</li>
+          <li ng-show="baker.actual != baker.balance">&nbsp;+<span>Current Deposits:</span> {{formatTez(baker.frozen)}}</li>
+          <li ng-show="baker.actual != baker.balance">&nbsp;+<span>Pending Rewards:</span> {{formatTez(baker.rewards)}}</li>
+          <li ng-show="baker.delegated > 0"><span>Delegated Stake:</span> {{formatTez(baker.delegated)}}</li>
           <li><span>Staking Balance:</span> {{formatTez(baker.staking)}}</li>
           <li><span>Rolls:</span> {{baker.rolls}}</li>
-          <li><span>Excess:</span> {{formatTez(baker.excess)}}</li>
-          <li><span>Stakers:</span> {{baker.stakers}}</li>
+          <li ng-show="baker.excess > 0"><span>Excess:</span> {{formatTez(baker.excess)}}</li>
+          <li ng-show="baker.stakers > 0"><span>Stakers:</span> {{baker.stakers}}</li>
           <li><span>Capacity:</span> {{formatPercent(baker.delegated/(((baker.staking-baker.delegated)/.0825)-(baker.staking-baker.delegated)))}}</li>
         </ul>
         <ul>
           <li><span>Baked Blocks:</span> {{baker.bakes}}</li>
           <li><span>Burnt Blocks:</span> {{baker.misses}}</li>
           <li><span>Steals:</span> {{baker.steals}}</li>
-          <!--<li><span>Endorsements:</span> {{baker.endorsements}}</li>-->
+          <li><span>Endorsements:</span> {{baker.endorsements}}</li>
           <li><span>Bake Rate:</span> {{formatPercent((baker.bakes-baker.steals)/(baker.bakes+baker.misses-baker.steals))}}</li>
         </ul>
         <ul>
@@ -110,7 +110,7 @@
             <table ng-show="baker.payouts.length" class="tableList">
               <thead><th>Cycle</th><th>Reward</th><th>Payout Level</th><th>Status</th></thead>
               <tr class="tableListRow" ng-repeat="item in baker.payouts">
-                <td>{{item.cycle}}</td><td>{{formatTez(item.amount)}}</td><td>{{(128*(item.cycle+5))+1}}</td><td style="text-transform:uppercase;font-weight:bold;"><span style="color:{{((128*(item.cycle+5))+1 >= baker.level ? 'red' : 'green')}}">{{((128*(item.cycle+5))+1 >= baker.level ? 'Frozen' : 'Paid')}}</span></td>
+                <td>{{item.cycle}}</td><td>{{formatTez(item.amount)}}</td><td>{{(128*(item.cycle+5))}}</td><td style="text-transform:uppercase;font-weight:bold;"><span style="color:{{((128*(item.cycle+6)) >= baker.level ? 'red' : 'green')}}">{{((128*(item.cycle+6)) >= baker.level ? 'Pending' : 'Paid')}}</span></td>
               </tr>
             </table>
           </div>
