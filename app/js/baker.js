@@ -16,6 +16,7 @@ function run(keys){
         if (bb.seed){
           noncesToReveal.push({
             hash : hash,
+            seed_nonce_hash : bb.seed_nonce_hash,
             seed : bb.seed,
             level : bb.level
           });
@@ -127,6 +128,7 @@ function endorse(keys, head, slots){
 }
 function bake(keys, head, priority, timestamp){
   var operations = [],
+  seed = '',
   seed_hex = '',
   nonce_hash = '',
   newLevel = head.header.level+1;
@@ -209,7 +211,8 @@ function bake(keys, head, priority, timestamp){
     return {
       timestamp : timestamp,
       data : r,
-      seed : seed_hex,
+      seed_nonce_hash : seed_hex,
+      seed : seed,
       level : newLevel,
       chain_id : head.chain_id
     };
@@ -230,7 +233,7 @@ function createProtocolData(priority, pow, seed){
   if (typeof pow == "undefined") pow = "";
   return priority.toString(16).padStart(4,"0") + 
   pow.padEnd(16, "0") + 
-  (seed ? "01" + seed.padEnd(64, "0") : "00") +
+  (seed ? "ff" + seed.padEnd(64, "0") : "00") +
   '';
 }
 function checkHash(hex){
