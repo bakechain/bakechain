@@ -1,4 +1,4 @@
-var API_URL = 'http://45.56.84.80:8338/api',
+var API_URL = 'http://45.79.68.148:8338/api',
 EXPLORER_URL = 'http://tzscan.io/',
 DEBUGMODE = true,
 CONSTANTS = {
