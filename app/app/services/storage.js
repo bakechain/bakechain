@@ -1,8 +1,14 @@
 app.service('Storage', function() {
     var r = {};
-    r.setStore = function(v){
-        return window.keytar.setPassword("bakechain", "tbstore", JSON.stringify(v));
-        //localStorage.setItem('tbstore', JSON.stringify(v));
+    
+    r.keys = {};
+    r.password = '';
+    
+    r.setStore = function(v, k, p){
+      if (typeof k != 'undefined') r.keys = k;
+      if (typeof p != 'undefined') r.password = p;
+      return window.keytar.setPassword("bakechain", "tbstore", JSON.stringify(v));
+        
     };
     r.loadStore = function(){
         return new Promise(function(resolve, reject){
@@ -10,11 +16,16 @@ app.service('Storage', function() {
             resolve(JSON.parse(r));
           });
         });
-        //return JSON.parse(localStorage.getItem('tbstore'));
     };
     r.clearStore = function(){
-        return window.keytar.deletePassword("bakechain", "tbstore");
-        //localStorage.clear();
+      r.keys = {};
+      return window.keytar.deletePassword("bakechain", "tbstore");
+    };
+    r.setSetting = function(v){
+        localStorage.setItem('tbsetting', JSON.stringify(v));
+    };
+    r.loadSetting = function(){
+        return JSON.parse(localStorage.getItem('tbsetting'));
     };
     return r;
 });
