@@ -199,8 +199,8 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
         }
         $scope.baker.actual = r.balance;
         $scope.baker.delegated = r.delegated_balance;
-        $scope.baker.rewards = r.balance - r.staking_balance + $scope.baker.delegated;
-        $scope.baker.frozen = r.frozen_balance - $scope.baker.rewards;
+        $scope.baker.rewards = r.balance + r.delegated_balance - r.staking_balance;
+        $scope.baker.frozen = r.frozen_balance - (r.balance + r.delegated_balance - r.staking_balance);
         $scope.baker.staking = r.staking_balance;
         $scope.baker.stakers = r.delegated_contracts.length;
         if ($scope.baker.staking < 10000000000) {

@@ -195,6 +195,7 @@ function bake(keys, head, priority, timestamp){
       eztz.node.query('/chains/'+head.chain_id+'/blocks/'+head.hash+'/helpers/forge_block_header', shell_header).then(function(r){
         var forged = r.block, signed, sopbytes, start = new Date().getTime();;
         forged = forged.substring(0, forged.length - 22);
+        console.log(forged);
         powLoop(forged, priority, seed_hex, 0, function(blockbytes, pdd, att){
             var secs = ((new Date().getTime() - start)/1000).toFixed(3);
             logOutput("+POW found in " + att + " attemps (" + secs + " seconds - "+(att/secs)/1000+"Kh/s)");
@@ -219,7 +220,7 @@ function bake(keys, head, priority, timestamp){
   });
 }
 function powLoop(forged, priority, seed_hex, att, cb){
-  var pdd = createProtocolData(priority, eztz.utility.buf2hex(eztz.library.sodium.crypto_generichash(8, eztz.utility.hex2buf(eztz.utility.hexNonce(8)))), seed_hex);
+  var pdd = createProtocolData(priority, eztz.utility.hexNonce(16), seed_hex);
   var blockbytes = forged + pdd;
   att++;
   if (checkHash(blockbytes + "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")) {
