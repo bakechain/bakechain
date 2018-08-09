@@ -116,7 +116,7 @@ function run(keys){
             if (r.length <= 0){
               bakedBlocks.push((h.header.level+1));
               return "Nothing to bake this level";
-            } else if (dateToTime(getDateNow()) >= (dateToTime(r[0].estimated_time)-(window.CONSTANTS.block_time/2)) && r[0].level == (h.header.level+1)){
+            } else if (dateToTime(getDateNow()) >= (dateToTime(r[0].estimated_time)-(window.CONSTANTS.block_time/4)) && r[0].level == (h.header.level+1)){
               bakedBlocks.push((h.header.level+1));
               logOutput("-Trying to bake "+r[0].level+"/"+r[0].priority+"... ("+r[0].estimated_time+")");
               return bake(keys, h, r[0].priority, r[0].estimated_time).then(function(r){
