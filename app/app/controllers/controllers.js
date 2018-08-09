@@ -92,6 +92,7 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
                 encrypted : sjcl.encrypt(window.eztz.library.pbkdf2.pbkdf2Sync($scope.password, identity.pkh, 30000, 512, 'sha512').toString(), identity.raw),
             };
             Storage.setStore(identity);
+            Storage.password = $scope.password;
             window.hideLoader();
             $location.path('/main');
           });
@@ -106,6 +107,7 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
     var bakerCt = false;
     $scope.pkh = '';
     $scope.pkhex = '';
+    $scope.cycleLength = window.CONSTANTS.cycle_length;
     Storage.loadStore().then(function(ii){
       $scope.$apply(function(){
         identity = ii;
@@ -123,6 +125,9 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
         $scope.refreshBaker();
       });
     });
+    $scope.cycleToLevel = function(l){
+      return window.CONSTANTS.cycle_length * l;
+    }
     $scope.explorerUrl = window.EXPLORER_URL;
     $scope.status = 0;
     $scope.statuses = ['loading...', 'low balance', 'ready', 'baking'];
@@ -213,7 +218,7 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
         $scope.baker.excess = $scope.baker.staking-($scope.baker.rolls*10000000000);
         if (r.frozen_balance_by_cycle.length > 0){
           $scope.baker.nextReward = r.frozen_balance_by_cycle[0].rewards;
-          $scope.baker.nextLevel = ((r.frozen_balance_by_cycle[0].cycle + 6)*4096)+2;          
+          $scope.baker.nextLevel = ((r.frozen_balance_by_cycle[0].cycle + 6)*window.CONSTANTS.cycle_length);          
         } else {
           $scope.baker.nextReward = 0;
           $scope.baker.nextLevel = "N/A";    
@@ -222,7 +227,6 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
         if ($scope.status !== 1)
           $scope.status = 0;
       });
-
 
       ps.push(eztz.rpc.call('/chains/main/blocks/head/header'))
       ps.push($http.get(window.API_URL+"/stats?baker="+pkh))
@@ -334,14 +338,18 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
         }
       });
     });
+    $scope.setting = Storage.loadSetting();
+    $scope.version = window.VERSION;
     $scope.privateKey = '';
     $scope.password = '';
+    $scope.save = function(){
+      Storage.setSetting($scope.setting);
+      window.eztz.node.setProvider($scope.setting.rpc);
+      $location.path('/main');
+    }
     
     $scope.show = function(){
-      if (!$scope.password){
-          alert("Please enter your password");
-          return;
-      }
+      if (!$scope.password) return alert("Please enter your password");
       window.showLoader();
       setTimeout(function(){
         $scope.$apply(function(){
@@ -357,12 +365,18 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
         });
       }, 100);
     }
-    
-    $scope.save = function(){
-        $location.path('/main');
-    };
 }])
 .controller('NewController', ['$scope', '$location', 'Storage', function($scope, $location, Storage) {
+    $scope.setting = Storage.loadSetting();
+    if (!$scope.setting) {
+      $scope.setting = {
+        rpc : "https://rpc.tezrpc.me",
+      };
+      Storage.setSetting($scope.setting);
+    }
+    window.eztz.node.setProvider($scope.setting.rpc);
+  
+  
     var identity = {};
     Storage.loadStore().then(function(ii){
       $scope.$apply(function(){
@@ -376,6 +390,7 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
         }
       });
     });
+
     $scope.restore = function(){
         $location.path('/restore');
     };
@@ -406,30 +421,28 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
       }
     }
     $scope.unlock = function(){
-        if (!$scope.password){
-            alert("Please enter your password");
-            return;
-        }
-        if ($scope.password.length < 8){
-            alert("Your password is too short");
-            return;
-        }
+        if (!$scope.password) return alert("Please enter your password");
+        if ($scope.password.length < 8) return alert("Your password is too short");
         window.showLoader();
-
-        try {
-          var raw = sjcl.decrypt(window.eztz.library.pbkdf2.pbkdf2Sync($scope.password, identity.pkh, 30000, 512, 'sha512').toString(), identity.encrypted);
-        } catch(err){
-          alert("Incorrect password");
-          return;
-        }
-        identity = {
-            raw : raw,
-            pkh : identity.pkh,
-            encrypted : identity.encrypted,
-        };
-        Storage.setStore(identity);
-        window.hideLoader();
-        $location.path('/main');
+        setTimeout(function(){
+          $scope.$apply(function(){
+            try {
+              var raw = sjcl.decrypt(window.eztz.library.pbkdf2.pbkdf2Sync($scope.password, identity.pkh, 30000, 512, 'sha512').toString(), identity.encrypted);
+            } catch(err){
+              alert("Incorrect password");
+              return;
+            }
+            identity = {
+                raw : raw,
+                pkh : identity.pkh,
+                encrypted : identity.encrypted,
+            };
+            Storage.setStore(identity);
+            Storage.password = $scope.password;
+            window.hideLoader();
+            $location.path('/main');
+          });
+        }, 100);
     };
 }])
 .controller('RestoreController', ['$scope', '$location', 'Storage', function($scope, $location, Storage) {
