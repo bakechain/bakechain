@@ -1,4 +1,4 @@
-var head, pendingBlocks = [], badOps = [], endorsedBlocks = [], noncesToReveal = [], lastLevel = 0, bakedBlocks = [], logOutput = function(e){    
+var lockbaker = false, head, pendingBlocks = [], badOps = [], endorsedBlocks = [], noncesToReveal = [], lastLevel = 0, bakedBlocks = [], logOutput = function(e){    
   if (typeof window.DEBUGMODE != 'undefined' && window.DEBUGMODE)
     console.log(e);
 };
@@ -6,13 +6,14 @@ function runBaker(keys){
   run(keys);
   return setInterval(function() { run(keys); }, 1000);
 }
+//Run baker
 function run(keys){
   var nb = [];
   for(var i = 0; i < pendingBlocks.length; i++){
     var bb = pendingBlocks[i];
     if (bb.level <= head.header.level) continue; //prune
     if (dateToTime(getDateNow()) >= dateToTime(bb.timestamp)){
-      eztz.node.query('/injection/block?force=true&chain='+bb.chain_id, bb.data).then(function(hash){
+      eztz.node.query('/injection/block?chain='+bb.chain_id, bb.data).then(function(hash){
         if (bb.seed){
           noncesToReveal.push({
             hash : hash,
@@ -34,61 +35,69 @@ function run(keys){
         }
         bakedBlocks.splice(bakedBlocks.indexOf(bb.level), 1);
         logOutput("-Failed to bake with error");
-        logOutput(e);
         console.error("Inject failed", e);
       });
     }
     else nb.push(bb);
   }
   pendingBlocks = nb;
-  
+  if (lockbaker) return;
+  lockbaker = true;
   eztz.rpc.getHead().then(function(r){
+    lockbaker = false;
     head = r;
+    
+    //Run revealer
     if (lastLevel < head.header.level) {
       lastLevel = head.header.level;
       logOutput("-Current level " + head.header.level + " (" + getDateNow() + ")");
-    }
-    
-    if ((head.header.level-1) % window.CONSTANTS.cycle_length === 0) {
-      logOutput(noncesToReveal.length + " nonces to reveal...");
-      if (noncesToReveal.length > 0){
-        //TODO: Lets reveal the nonce now
+      if ((head.header.level-1) % window.CONSTANTS.cycle_length === 0) {
+        logOutput(noncesToReveal.length + " nonces to reveal...");
+        if (noncesToReveal.length > 0){
+          //TODO: Lets reveal the nonce now
+        }
       }
     }
     
+    //Run endorser
     if (endorsedBlocks.indexOf(head.header.level) < 0){
       eztz.node.query('/chains/'+head.chain_id+'/blocks/'+head.hash+'/helpers/endorsing_rights?level='+head.header.level+"&delegate="+keys.pkh).then(function(rights){
         if (rights.length > 0){
-          endorsedBlocks.push(head.header.level);
-          endorse(keys, head, rights[0].slots).then(function(r){            
-            logOutput("+Endorsed block #" + head.hash + " (" + r + ")");
-          }).catch(function(e){
-            endorsedBlocks.splice(endorsedBlocks.indexOf(head.header.level), 1);
-            logOutput("!Failed to endorse block #" + head.hash);
-          });
+          if (endorsedBlocks.indexOf(head.header.level) < 0) {  
+            endorsedBlocks.push(head.header.level);
+            console.log("endorse " + head.header.level);
+            endorse(keys, head, rights[0].slots).then(function(r){            
+              logOutput("+Endorsed block #" + head.hash + " (" + r + ")");
+            }).catch(function(e){
+              endorsedBlocks.splice(endorsedBlocks.indexOf(head.header.level), 1);
+              logOutput("!Failed to endorse block #" + head.hash);
+            });
+          }
         }
       });
     }
 
-    //Check for blocks to bake
+    //Run baker
     if (bakedBlocks.indexOf(head.header.level+1) < 0){
       eztz.node.query('/chains/'+head.chain_id+'/blocks/'+head.hash+'/helpers/baking_rights?level='+(head.header.level+1)+"&delegate="+keys.pkh).then(function(r){
-        if (r.length <= 0){
-          bakedBlocks.push((head.header.level+1));
-          return "Nothing to bake this level";
-        } else if (dateToTime(getDateNow()) >= (dateToTime(r[0].estimated_time)-(window.CONSTANTS.block_time/2)) && r[0].level == (head.header.level+1)){
-          bakedBlocks.push((head.header.level+1));
-          logOutput("-Trying to bake "+r[0].level+"/"+r[0].priority+"... ("+r[0].estimated_time+")");
-          return bake(keys, head, r[0].priority, r[0].estimated_time).then(function(r){
-            pendingBlocks.push(r);
-            return "-Added potential bake for level " + (head.header.level+1);
-          }).catch(function(e){
-            //TODO: Add retry
-            //bakedBlocks.splice(bakedBlocks.indexOf(head.header.level+1), 1);
-            return "-Couldn't bake " + (head.header.level+1);
-          });
-        } else {
-          return false
+        if (bakedBlocks.indexOf(head.header.level+1) < 0){
+          if (r.length <= 0){
+            bakedBlocks.push((head.header.level+1));
+            return "Nothing to bake this level";
+          } else if (dateToTime(getDateNow()) >= (dateToTime(r[0].estimated_time)-(window.CONSTANTS.block_time/2)) && r[0].level == (head.header.level+1)){
+            bakedBlocks.push((head.header.level+1));
+            logOutput("-Trying to bake "+r[0].level+"/"+r[0].priority+"... ("+r[0].estimated_time+")");
+            return bake(keys, head, r[0].priority, r[0].estimated_time).then(function(r){
+              pendingBlocks.push(r);
+              return "-Added potential bake for level " + (head.header.level+1);
+            }).catch(function(e){
+              //TODO: Add retry
+              //bakedBlocks.splice(bakedBlocks.indexOf(head.header.level+1), 1);
+              return "-Couldn't bake " + (head.header.level+1);
+            });
+          } else {
+            return false
+          }
         }
       }).then(function(r){
         if (r) logOutput(r);
@@ -97,8 +106,11 @@ function run(keys){
         logOutput("!Error", e);
       });
     }
-  })
+  }).catch(function(){
+    lockbaker = false;
+  });
 }
+//Baker functions
 function endorse(keys, head, slots){
   var sopbytes;
   var opOb = {
@@ -142,21 +154,30 @@ function bake(keys, head, priority, timestamp){
   
   return eztz.node.query('/chains/'+head.chain_id+'/mempool').then(function(r){
     logOutput(r);
-    var addedOps = [];
+    var addedOps = [], endorsements = [], transactions = [];
     for(var i = 0; i < r.applied.length; i++){
       if (addedOps.indexOf(r.applied[i].hash) <0) {
         if (r.applied[i].branch != head.hash) continue;
         if (badOps.indexOf(r.applied[i].hash) >= 0) continue;
         addedOps.push(r.applied[i].hash);
-        operations.push({
-          "protocol" : head.protocol,
-          "branch" : r.applied[i].branch,
-          "contents" : r.applied[i].contents,
-          "signature" : r.applied[i].signature,
-        });
+        if (r.applied[i].contents[0].kind == 'endorsement'){
+          endorsements.push({
+            "protocol" : head.protocol,
+            "branch" : r.applied[i].branch,
+            "contents" : r.applied[i].contents,
+            "signature" : r.applied[i].signature,
+          });
+        } else {          
+          transactions.push({
+            "protocol" : head.protocol,
+            "branch" : r.applied[i].branch,
+            "contents" : r.applied[i].contents,
+            "signature" : r.applied[i].signature,
+          });
+        }
       }
     }
-    operations = [operations,[],[],[]];
+    operations = [endorsements,[],[],transactions];
     var header = {
         "protocol_data": {
           protocol : head.protocol,
@@ -247,7 +268,6 @@ function stampcheck(s){
   }
   return value;
 }
-
-
+//Utility Functions
 function dateToTime(dd){return (new Date(dd).getTime()/1000)};
 function getDateNow(){return new Date().toISOString().substr(0,19)+"Z"};

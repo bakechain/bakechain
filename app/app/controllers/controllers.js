@@ -107,6 +107,7 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
     var bakerCt = false;
     $scope.pkh = '';
     $scope.pkhex = '';
+    $scope.cycleLength = window.CONSTANTS.cycle_length;
     Storage.loadStore().then(function(ii){
       $scope.$apply(function(){
         identity = ii;
@@ -124,6 +125,9 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
         $scope.refreshBaker();
       });
     });
+    $scope.cycleToLevel = function(l){
+      return window.CONSTANTS.cycle_length * l;
+    }
     $scope.explorerUrl = window.EXPLORER_URL;
     $scope.status = 0;
     $scope.statuses = ['loading...', 'low balance', 'ready', 'baking'];
@@ -214,7 +218,7 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
         $scope.baker.excess = $scope.baker.staking-($scope.baker.rolls*10000000000);
         if (r.frozen_balance_by_cycle.length > 0){
           $scope.baker.nextReward = r.frozen_balance_by_cycle[0].rewards;
-          $scope.baker.nextLevel = ((r.frozen_balance_by_cycle[0].cycle + 6)*4096)+2;          
+          $scope.baker.nextLevel = ((r.frozen_balance_by_cycle[0].cycle + 6)*window.CONSTANTS.cycle_length);          
         } else {
           $scope.baker.nextReward = 0;
           $scope.baker.nextLevel = "N/A";    
@@ -223,7 +227,6 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
         if ($scope.status !== 1)
           $scope.status = 0;
       });
-
 
       ps.push(eztz.rpc.call('/chains/main/blocks/head/header'))
       ps.push($http.get(window.API_URL+"/stats?baker="+pkh))
@@ -336,6 +339,7 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
       });
     });
     $scope.setting = Storage.loadSetting();
+    $scope.version = window.VERSION;
     $scope.privateKey = '';
     $scope.password = '';
     $scope.save = function(){
