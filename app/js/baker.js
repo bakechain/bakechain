@@ -1,18 +1,33 @@
-var lockbaker = false, head, pendingBlocks = [], badOps = [], endorsedBlocks = [], noncesToReveal = [], lastLevel = 0, bakedBlocks = [], logOutput = function(e){    
+var startLevel = 0, bkint = false, injectedBlocks = [], lockbaker = false, head, pendingBlocks = [], badOps = [], endorsedBlocks = [], noncesToReveal = [], lastLevel = 0, bakedBlocks = [], logOutput = function(e){    
   if (typeof window.DEBUGMODE != 'undefined' && window.DEBUGMODE)
     console.log(e);
 };
 function runBaker(keys){
+  if (bkint) {
+    clearInterval(bkint);
+    bkint = false;
+  }
   run(keys);
-  return setInterval(function() { run(keys); }, 1000);
+  bkint = setInterval(function() { run(keys); }, 1000)
+  return bkint;
+}
+function stopBaker(){
+  if (bkint) {
+    clearInterval(bkint);
+    bkint = false;
+  }
 }
 //Run baker
 function run(keys){
+  
+  //Inject pending blocks
   var nb = [];
   for(var i = 0; i < pendingBlocks.length; i++){
     var bb = pendingBlocks[i];
     if (bb.level <= head.header.level) continue; //prune
+    if (injectedBlocks.indexOf(bb.level) >= 0) continue; //prune
     if (dateToTime(getDateNow()) >= dateToTime(bb.timestamp)){
+      injectedBlocks.push(bb.level);
       eztz.node.query('/injection/block?chain='+bb.chain_id, bb.data).then(function(hash){
         if (bb.seed){
           noncesToReveal.push({
@@ -33,7 +48,6 @@ function run(keys){
         if (Array.isArray(e) && e.length && typeof e[0].id != 'undefined'){
           console.log(e[0].id, bb);
         }
-        bakedBlocks.splice(bakedBlocks.indexOf(bb.level), 1);
         logOutput("-Failed to bake with error");
         console.error("Inject failed", e);
       });
@@ -41,6 +55,7 @@ function run(keys){
     else nb.push(bb);
   }
   pendingBlocks = nb;
+  
   if (lockbaker) return;
   lockbaker = true;
   eztz.rpc.getHead().then(function(r){
@@ -59,52 +74,70 @@ function run(keys){
       }
     }
     
+    //Standown for 1 block
+    if (startLevel == 0){
+      startLevel = head.header.level+1;
+      logOutput("Initiate stand-down - starting at level " + startLevel);
+    }
+    if (startLevel > head.header.level) return;
+    
     //Run endorser
     if (endorsedBlocks.indexOf(head.header.level) < 0){
-      eztz.node.query('/chains/'+head.chain_id+'/blocks/'+head.hash+'/helpers/endorsing_rights?level='+head.header.level+"&delegate="+keys.pkh).then(function(rights){
-        if (rights.length > 0){
-          if (endorsedBlocks.indexOf(head.header.level) < 0) {  
-            endorsedBlocks.push(head.header.level);
-            console.log("endorse " + head.header.level);
-            endorse(keys, head, rights[0].slots).then(function(r){            
-              logOutput("+Endorsed block #" + head.hash + " (" + r + ")");
-            }).catch(function(e){
-              endorsedBlocks.splice(endorsedBlocks.indexOf(head.header.level), 1);
-              logOutput("!Failed to endorse block #" + head.hash);
-            });
+      (function(h){
+        eztz.node.query('/chains/'+h.chain_id+'/blocks/'+h.hash+'/helpers/endorsing_rights?level='+h.header.level+"&delegate="+keys.pkh).then(function(rights){
+          if (h.header.level != head.header.level) {
+            logOutput("Head changed!");
+            return;
           }
-        }
-      });
+          if (rights.length > 0){
+            if (endorsedBlocks.indexOf(h.header.level) < 0) {  
+              endorsedBlocks.push(h.header.level);
+              console.log("endorse " + h.header.level);
+              endorse(keys, h, rights[0].slots).then(function(r){            
+                logOutput("+Endorsed block #" + h.hash + " (" + r + ")");
+              }).catch(function(e){
+                logOutput("!Failed to endorse block #" + h.hash);
+              });
+            }
+          }
+        });
+      }(head));
     }
 
     //Run baker
     if (bakedBlocks.indexOf(head.header.level+1) < 0){
-      eztz.node.query('/chains/'+head.chain_id+'/blocks/'+head.hash+'/helpers/baking_rights?level='+(head.header.level+1)+"&delegate="+keys.pkh).then(function(r){
-        if (bakedBlocks.indexOf(head.header.level+1) < 0){
-          if (r.length <= 0){
-            bakedBlocks.push((head.header.level+1));
-            return "Nothing to bake this level";
-          } else if (dateToTime(getDateNow()) >= (dateToTime(r[0].estimated_time)-(window.CONSTANTS.block_time/2)) && r[0].level == (head.header.level+1)){
-            bakedBlocks.push((head.header.level+1));
-            logOutput("-Trying to bake "+r[0].level+"/"+r[0].priority+"... ("+r[0].estimated_time+")");
-            return bake(keys, head, r[0].priority, r[0].estimated_time).then(function(r){
-              pendingBlocks.push(r);
-              return "-Added potential bake for level " + (head.header.level+1);
-            }).catch(function(e){
-              //TODO: Add retry
-              //bakedBlocks.splice(bakedBlocks.indexOf(head.header.level+1), 1);
-              return "-Couldn't bake " + (head.header.level+1);
-            });
-          } else {
-            return false
+      (function(h){
+        eztz.node.query('/chains/'+h.chain_id+'/blocks/'+h.hash+'/helpers/baking_rights?level='+(h.header.level+1)+"&delegate="+keys.pkh).then(function(r){
+          if (h.header.level != head.header.level) {
+            logOutput("Head changed!");
+            return;
           }
-        }
-      }).then(function(r){
-        if (r) logOutput(r);
-        return r;
-      }).catch(function(e){
-        logOutput("!Error", e);
-      });
+          if (bakedBlocks.indexOf(h.header.level+1) < 0){
+            if (r.length <= 0){
+              bakedBlocks.push((h.header.level+1));
+              return "Nothing to bake this level";
+            } else if (dateToTime(getDateNow()) >= (dateToTime(r[0].estimated_time)-(window.CONSTANTS.block_time/2)) && r[0].level == (h.header.level+1)){
+              bakedBlocks.push((h.header.level+1));
+              logOutput("-Trying to bake "+r[0].level+"/"+r[0].priority+"... ("+r[0].estimated_time+")");
+              return bake(keys, h, r[0].priority, r[0].estimated_time).then(function(r){
+                pendingBlocks.push(r);
+                return "-Added potential bake for level " + (h.header.level+1);
+              }).catch(function(e){
+                //TODO: Add retry
+                //bakedBlocks.splice(bakedBlocks.indexOf(head.header.level+1), 1);
+                return "-Couldn't bake " + (h.header.level+1);
+              });
+            } else {
+              return false
+            }
+          }
+        }).then(function(r){
+          if (r) logOutput(r);
+          return r;
+        }).catch(function(e){
+          logOutput("!Error", e);
+        });
+      }(head));
     }
   }).catch(function(){
     lockbaker = false;
@@ -153,7 +186,6 @@ function bake(keys, head, priority, timestamp){
   }
   
   return eztz.node.query('/chains/'+head.chain_id+'/mempool').then(function(r){
-    logOutput(r);
     var addedOps = [], endorsements = [], transactions = [];
     for(var i = 0; i < r.applied.length; i++){
       if (addedOps.indexOf(r.applied[i].hash) <0) {
