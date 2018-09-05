@@ -110,7 +110,7 @@
             <table ng-show="baker.payouts.length" class="tableList">
               <thead><th>Cycle</th><th>Reward</th><th>Payout Level</th><th>Status</th></thead>
               <tr class="tableListRow" ng-repeat="item in baker.payouts">
-                <td>{{item.cycle}}</td><td>{{formatTez(item.amount)}}</td><td>{{(128*(item.cycle+5))}}</td><td style="text-transform:uppercase;font-weight:bold;"><span style="color:{{((128*(item.cycle+6)) >= baker.level ? 'red' : 'green')}}">{{((128*(item.cycle+6)) >= baker.level ? 'Pending' : 'Paid')}}</span></td>
+                <td>{{item.cycle}}</td><td>{{formatTez(item.amount)}}</td><td>{{cycleToLevel(item.cycle+6)}}</td><td style="text-transform:uppercase;font-weight:bold;"><span style="color:{{((cycleToLevel(item.cycle+6)) >= baker.level ? 'red' : 'green')}}">{{((cycleToLevel(item.cycle+6)) >= baker.level ? 'Pending' : 'Paid')}}</span></td>
               </tr>
             </table>
           </div>

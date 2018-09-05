@@ -6,12 +6,12 @@
 <div class="inner" style="padding:50px">
     <div class="row">
       <div class="col-md-8">
-        <h2>Settings</h2>
+        <h2>Settings (v{{version}})</h2>
       </div>
     </div>
     <div class="row text-center">
         <div class="col-xs-12">
-              <p class="alert alert-info"><i class="leftIcon fas fa-exclamation-circle"></i><strong>Please be careful with changing or interacting with these settings.</strong></p>
+              <p class="alert alert-info"><strong>Please be careful with changing or interacting with these settings.</strong></p>
           </div>
       </div>
     <div class="row">
@@ -21,21 +21,27 @@
               <p>Please be careful with this option, as anyone viewing your screen will see the private key below</p>
           <div class="row">
             <div class="col-md-6">
-              <p><strong>{{privateKey}}</strong></p>
-                <input autocomplete="false" type="text" class="form-control" placeholder="Enter Password" ng-model="password" />
+              
+              <input autocomplete="false" type="password" class="form-control" placeholder="Enter Password" ng-model="password" />
             </div>
             
             <div class="col-md-3">
               <a ng-click="show()" class="btn btn-sm btn-primary btn-block">Show Private Key</a>
             </div>
           </div>
+          <div ng-show="privateKey" class="row">
+            <div class="col-md-12">
+              <p><strong>{{privateKey}}</strong></p>
+            </div>
+          </div>
           </div>
         </div>
     </div>
+    <div class="row">
     <div class="col-md-10">
           <div class="form-group">
               <label class="text-center">RPC Address</label>
-              <p>When running your own node, you can use your IP/domain here to connect to it by default. This needs to be available via SSL (HTTPS) to work with this wallet.</p>
+              <p>When running your own node, you can use your IP/domain here to connect to it by default.</p>
             <div class="row">
               <div class="col-xs-6">
                 <input type="text" class="text-left form-control" ng-model="setting.rpc">
@@ -43,6 +49,7 @@
             </div>
           </div>
       </div>
+    </div>
     <div class="row">
         <div class="col-md-3 col-xs-6">
           <a ng-click="save()" class="btn btn-primary btn-block">Save Settings</i></a>
