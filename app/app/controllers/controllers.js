@@ -202,12 +202,13 @@ app.controller('ValidateController', ['$scope', '$location', 'Storage', '$sce', 
         } else {
           activated = true;
         }
-        $scope.baker.actual = r.balance;
-        $scope.baker.delegated = r.delegated_balance;
-        $scope.baker.rewards = r.balance + r.delegated_balance - r.staking_balance;
-        $scope.baker.frozen = r.frozen_balance - (r.balance + r.delegated_balance - r.staking_balance);
-        $scope.baker.staking = r.staking_balance;
-        $scope.baker.stakers = r.delegated_contracts.length;
+        console.log(r);
+        $scope.baker.actual = parseInt(r.balance);
+        $scope.baker.delegated = parseInt(r.delegated_balance);
+        $scope.baker.rewards = parseInt(r.balance) + parseInt(r.delegated_balance) - parseInt(r.staking_balance);
+        $scope.baker.frozen = parseInt(r.frozen_balance) - (parseInt(r.balance) + parseInt(r.delegated_balance) - parseInt(r.staking_balance));
+        $scope.baker.staking = parseInt(r.staking_balance);
+        $scope.baker.stakers = parseInt(r.delegated_contracts.length);
         if ($scope.baker.staking < 10000000000) {
           $scope.status = 1;
         } else if ($scope.status < 2) {
