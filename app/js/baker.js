@@ -124,7 +124,6 @@ function run(keys){
                 return "-Added potential bake for level " + (h.header.level+1);
               }).catch(function(e){
                 //TODO: Add retry
-                //bakedBlocks.splice(bakedBlocks.indexOf(head.header.level+1), 1);
                 return "-Couldn't bake " + (h.header.level+1);
               });
             } else {
@@ -172,7 +171,7 @@ function endorse(keys, head, slots){
   }).catch(function(e){logOutput(e)});
 }
 function bake(keys, head, priority, timestamp){
-  var operations = [],
+  var operations = [[],[],[],[]],
   seed = '',
   seed_hex = '',
   nonce_hash = '',
@@ -192,24 +191,14 @@ function bake(keys, head, priority, timestamp){
         if (r.applied[i].branch != head.hash) continue;
         if (badOps.indexOf(r.applied[i].hash) >= 0) continue;
         addedOps.push(r.applied[i].hash);
-        if (r.applied[i].contents[0].kind == 'endorsement'){
-          endorsements.push({
-            "protocol" : head.protocol,
-            "branch" : r.applied[i].branch,
-            "contents" : r.applied[i].contents,
-            "signature" : r.applied[i].signature,
-          });
-        } else {          
-          transactions.push({
-            "protocol" : head.protocol,
-            "branch" : r.applied[i].branch,
-            "contents" : r.applied[i].contents,
-            "signature" : r.applied[i].signature,
-          });
-        }
+        operations[operationPass(r.applied[i])].push({
+          "protocol" : head.protocol,
+          "branch" : r.applied[i].branch,
+          "contents" : r.applied[i].contents,
+          "signature" : r.applied[i].signature,
+        });
       }
     }
-    operations = [endorsements,[],[],transactions];
     var header = {
         "protocol_data": {
           protocol : head.protocol,
@@ -248,8 +237,7 @@ function bake(keys, head, priority, timestamp){
       eztz.node.query('/chains/'+head.chain_id+'/blocks/'+head.hash+'/helpers/forge_block_header', shell_header).then(function(r){
         var forged = r.block, signed, sopbytes, start = new Date().getTime();;
         forged = forged.substring(0, forged.length - 22);
-        console.log(forged);
-        powLoop(forged, priority, seed_hex, 0, function(blockbytes, pdd, att){
+        powLoop(forged, priority, seed_hex, function(blockbytes, att){
             var secs = ((new Date().getTime() - start)/1000).toFixed(3);
             logOutput("+POW found in " + att + " attemps (" + secs + " seconds - "+(att/secs)/1000+"Kh/s)");
             signed = eztz.crypto.sign(blockbytes, keys.sk, eztz.utility.mergebuf(eztz.watermark.block, eztz.utility.b58cdecode(head.chain_id, eztz.prefix.Net)));
@@ -272,15 +260,35 @@ function bake(keys, head, priority, timestamp){
     };
   });
 }
-function powLoop(forged, priority, seed_hex, att, cb){
-  var pdd = createProtocolData(priority, eztz.utility.hexNonce(16), seed_hex);
-  var blockbytes = forged + pdd;
-  att++;
-  if (checkHash(blockbytes + "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")) {
-    cb(blockbytes, pdd, att);
-  } else {
-    setImmediate(powLoop, forged, priority, seed_hex, att, cb);
-  }
+function powLoop(forged, priority, seed_hex, cb){
+  var pdd = createProtocolData(priority, '0000000000000000', seed_hex),
+  blockbytes = forged + pdd,
+  hashBuffer = eztz.utility.hex2buf(blockbytes + "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
+  forgedLength = forged.length/2,
+  priorityLength = 2,
+  protocolOffset = forgedLength + priorityLength,
+  powLength = 8,
+  syncBatchSize = 2000;
+
+  (function powLoopHelper(att, syncAtt) {
+    att++;
+    syncAtt++;
+    for (var i = 0; i < powLength; i++) {
+      hashBuffer[protocolOffset+i] = Math.floor(Math.random()*256);
+    }
+    if (checkHash(hashBuffer)) {
+      var hex = eztz.utility.buf2hex(hashBuffer);
+      hex = hex.substr(0, hex.length-128);
+      console.log(hex);
+      cb(hex, att);
+    } else {
+      if (syncAtt < syncBatchSize) {
+        powLoopHelper(att, syncAtt);
+      } else {
+        setImmediate(powLoopHelper, att, 0);
+      }
+    }
+  })(0, 0);
 }
 function createProtocolData(priority, pow, seed){
   if (typeof seed == "undefined") seed = "";
@@ -290,17 +298,40 @@ function createProtocolData(priority, pow, seed){
   (seed ? "ff" + seed.padEnd(64, "0") : "00") +
   '';
 }
-function checkHash(hex){
-	rr = eztz.library.sodium.crypto_generichash(32, eztz.utility.hex2buf(hex));
+function checkHash(buf){
+	rr = eztz.library.sodium.crypto_generichash(32, buf);
 	return (stampcheck(rr) <= window.CONSTANTS.threshold);
 }
 function stampcheck(s){
-  var byteArray = s.slice(0, 8).reverse(), value = 0;
-  for ( var i = byteArray.length - 1; i >= 0; i--) {
-      value = (value * 256) + byteArray[i];
+  var value = 0;
+  for (var i = 0; i < 8; i++) {
+      value = (value * 256) + s[i];
   }
   return value;
 }
 //Utility Functions
 function dateToTime(dd){return (new Date(dd).getTime()/1000)};
 function getDateNow(){return new Date().toISOString().substr(0,19)+"Z"};
+function operationPass(applied) {
+  if (applied.contents.length == 1) {
+    switch (applied.contents[0].kind) {
+    case 'endorsement':
+      return 0;
+      break;
+    case 'proposals':
+    case 'ballot':
+      return 1;
+      break;
+    case 'seed_nonce_revelation':
+    case 'double_endorsement_evidence':
+    case 'double_baking_evidence':
+    case 'activate_account':
+      return 2;
+      break;
+    default:
+      return 3;
+    }
+  } else {
+    return 3;
+  }
+}

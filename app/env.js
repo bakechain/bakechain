@@ -4,6 +4,7 @@ EXPLORER_URL = 'http://tzscan.io/',
 NODE_ADDRESS = 'https://rpc.tezrpc.me',
 DEBUGMODE = false,
 CONSTANTS = {
+  mempool : 'mempool/pending_operations',
   cycle_length : 4096,
   commitment : 32,
   block_time : 60,
