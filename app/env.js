@@ -1,11 +1,10 @@
-
 var VERSION = '2.0.0',
 NODE_URL = 'https://mainnet.tezrpc.me',
 API_URL = 'https://api4.tzscan.io/v1',
 EXPLORER_URL = 'http://tzscan.io/',
 DEBUGMODE = false,
 CONSTANTS = {
-  mempool : 'mempool/pending_operations',
+  mempool : 'mempool',
   cycle_length : 4096,
   commitment : 32,
   block_time : 60,
