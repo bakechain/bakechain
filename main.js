@@ -91,7 +91,7 @@ function createMenu() {
     edit
   ]
 
-  //Menu.setApplicationMenu(Menu.buildFromTemplate(template))
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template))
 }
 app.on('ready',function(){
   createWindow();
