@@ -1,6 +1,6 @@
 <div class="row">
   <div class="col-md-4">
-    <img class="logoBig" src="images/logo.png" />
+    <img class="logoBig" src="skin/images/logo.png" />
   </div>
   <div class="col-md-4 text-center status stat{{status}}">
     Status : <span>{{statuses[status]}}</span>
@@ -89,8 +89,8 @@
             
             <table ng-show="baker.current.length" class="tableList">
               <thead><th>Level</th><th >Hash</th><th>Priority</th><th>Status</th><th></th></thead>
-              <tr class="tableListRow" ng-repeat="item in baker.current">
-                <td>{{item.level}}</td><td>{{item.hash.substr(0,20)}}...</td><td>{{item.priority}}</td><td style="text-transform:uppercase;" class="style-{{item.status}}">{{item.status}}</td><td><a target="_blank" href="{{explorerUrl}}{{item.hash}}" class="btn btn-small btn-primary">View Online</a></td>
+              <tr class="tableListRow" ng-repeat="item in baker.current" ng-show="item.distance_level == 0 || priority == 0">
+                <td>{{item.level}}</td><td>{{item.block_hash.substr(0,20)}}...</td><td>{{item.priority}}</td><td style="text-transform:uppercase;" class="style-{{bakeStatus(item)}}">{{bakeStatus(item)}}</td><td><a target="_blank" href="{{explorerUrl}}{{item.block_hash}}" class="btn btn-small btn-primary">View Online</a></td>
               </tr>
             </table>
           </div>
@@ -98,9 +98,9 @@
             <strong ng-hide="baker.currentEds.length">No endorsements available - please start baking!</strong>
             
             <table ng-show="baker.currentEds.length" class="tableList">
-              <thead><th>Level</th><th >Hash</th><th>Priority</th><th>Count</th><th></th></thead>
-              <tr class="tableListRow" ng-repeat="item in baker.currentEds">
-                <td>{{item.level}}</td><td>{{item.hash.substr(0,20)}}...</td><td>{{item.priority}}</td><td>{{item.number}}</td><td><a target="_blank" href="{{explorerUrl}}{{item.hash}}" class="btn btn-small btn-primary">View Online</a></td>
+              <thead><th>Level</th><th>Hash</th><th>Priority</th><th>Count</th><th></th></thead>
+              <tr class="tableListRow" ng-repeat="item in baker.currentEds" ng-hide="!item.block">
+                <td>{{item.level}}</td><td>{{item.block.substr(0,20)}}...</td><td>{{item.priority}}</td><td>{{item.slots.length}}</td><td><a target="_blank" href="{{explorerUrl}}{{item.block}}" class="btn btn-small btn-primary">View Online</a></td>
               </tr>
             </table>
           </div>
@@ -110,7 +110,7 @@
             <table ng-show="baker.payouts.length" class="tableList">
               <thead><th>Cycle</th><th>Reward</th><th>Payout Level</th><th>Status</th></thead>
               <tr class="tableListRow" ng-repeat="item in baker.payouts">
-                <td>{{item.cycle}}</td><td>{{formatTez(item.amount)}}</td><td>{{cycleToLevel(item.cycle+6)}}</td><td style="text-transform:uppercase;font-weight:bold;"><span style="color:{{((cycleToLevel(item.cycle+6)) >= baker.level ? 'red' : 'green')}}">{{((cycleToLevel(item.cycle+6)) >= baker.level ? 'Pending' : 'Paid')}}</span></td>
+                <td>{{item.cycle}}</td><td>{{formatTez(item.blocks_rewards+item.endorsements_rewards+item.fees)}}</td><td>{{cycleToLevel(item.cycle+6)}}</td><td style="text-transform:uppercase;font-weight:bold;"><span style="color:{{(item.status.status == 'rewards_delivered' ? 'green' : 'red')}}">{{(item.status.status == "rewards_delivered" ? 'Paid' : 'Pending')}}</span></td>
               </tr>
             </table>
           </div>

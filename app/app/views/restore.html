@@ -1,21 +1,21 @@
 <div class="row">
   <div class="col-md-4">
-    <img class="logoBig" src="images/logo.png" />
+    <img class="logoBig" src="skin/images/logo.png" />
   </div>
 </div>
 <div class="inner bg3" style="padding:50px">
     <div class="row">
-      <div class="col-md-8">
+      <div class="col-md-12">
         <h5>Ready to Bake!</h5>
-        <h3>RESTORE</h3>
+        <h3>RESTORE BAKER</h3>
       </div>
     </div>
     <div class="row">
         <div class="col-md-8">
           <ul class="nav nav-tabs restore" role="tablist">
-            <li role="presentation" class="active"><a ng-click="type=0" data-target="#seed" aria-controls="seed" role="tab" data-toggle="tab">Seed Phrase</a></li>
-            <li role="presentation" class=""><a ng-click="type=1" data-target="#private" aria-controls="private" role="tab" data-toggle="tab">Private Key</a></li>
-            <li role="presentation" class=""><a ng-click="type=2" data-target="#fundraiser" aria-controls="fundraiser" role="tab" data-toggle="tab">Fundraiser</a></li>
+            <li role="presentation" class="active"><a ng-click="type='seed'" data-target="#seed" aria-controls="seed" role="tab" data-toggle="tab">Seed Phrase</a></li>
+            <li role="presentation" class=""><a ng-click="type='ico'" data-target="#fundraiser" aria-controls="fundraiser" role="tab" data-toggle="tab">Fundraiser</a></li>
+            <li role="presentation" class=""><a ng-click="type='private'" data-target="#private" aria-controls="private" role="tab" data-toggle="tab">Private Key</a></li>
           </ul>
 
           <!-- Tab panes -->
@@ -40,8 +40,16 @@
               <div class="row">
                 <div class="col-md-10">
                   <div class="form-group">
-                    <label>Private Key (edsk...)</label>
-                    <input autocomplete="false" type="password" class="form-control" placeholder="Enter Private Key" ng-model="privatekey" />
+                    <label>Private Key (edsk/edesk...)</label>
+                    <input autocomplete="false" type="password" class="form-control" placeholder="Enter Private Key" ng-model="private_key" />
+                  </div>
+                </div>
+              </div>
+              <div class="row" ng-show="isEdesk()">
+                <div class="col-md-10">
+                  <div class="form-group">
+                    <label>Encryption Password</label>
+                    <input autocomplete="false" type="password" class="form-control" placeholder="Enter Encryption Password" ng-model="encryption_password" />
                   </div>
                 </div>
               </div>
@@ -63,19 +71,19 @@
                 <div class="col-md-5">
                   <div class="form-group">
                     <label>Password</label>
-                      <input autocomplete="false" type="password" class="form-control" ng-model="password" placeholder="Password">
+                      <input autocomplete="false" type="password" class="form-control" ng-model="ico_password" placeholder="Password">
                   </div>
                 </div>
                 <div class="col-md-8">
                   <div class="form-group">
                     <label>Address/Public Key Hash (tz1)</label>
-                      <input autocomplete="false" type="text" class="form-control" ng-model="tz1" placeholder="tz1...">
+                      <input autocomplete="false" type="text" class="form-control" ng-model="address" placeholder="tz1...">
                   </div>
                 </div>
                 <div class="col-md-8">
                   <div class="form-group">
                     <label>Activation Code</label>
-                      <input autocomplete="false" type="text" class="form-control" ng-model="code" placeholder="Only enter if your account isn't active yet">
+                      <input autocomplete="false" type="text" class="form-control" ng-model="activation_code" placeholder="Only enter if your account isn't active yet">
                   </div>
                 </div>
               </div>

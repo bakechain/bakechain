@@ -1,6 +1,6 @@
 {
   "name": "bakechain",
-  "version": "0.4.0",
+  "version": "2.0.0",
   "description": "",
   "main": "main.js",
   "scripts": {
@@ -9,8 +9,8 @@
     "pack": "build --dir",
     "dist": "build"
   },
-  "author": "Stephen Andrews",
-  "license": "ISC",
+  "author": "TezTech Labs",
+  "license": "MIT",
   "build": {
     "productName": "Bakechain",
     "appId": "io.bakechain.app",
@@ -21,7 +21,9 @@
       "package.json"
     ],
     "mac": {
-      "category": "your.app.category.type"
+      "icon": "assets/icon.png",
+      "target": "dmg",
+      "category": "public.app-category.productivity"
     },
     "dmg": {
       "contents": [
@@ -44,19 +46,29 @@
       ]
     },
     "win": {
-      "target": "NSIS"
+      "target": "NSIS",
+      "icon": "assets/icon.png"
     },
     "nsis": {
       "oneClick": true
     },
     "directories": {
-      "output": "releases"
+      "output": "releases/build",
+      "buildResources": "assets"
     }
   },
   "dependencies": {
-    "keytar": "^4.2.1"
+    "@ledgerhq/hw-transport": "^4.24.0",
+    "@ledgerhq/hw-transport-node-hid": "^4.24.0",
+    "babel-runtime": "^6.26.0",
+    "electron-store": "^2.0.0",
+    "protobufjs": "^6.8.8",
+    "protobufjs-old-fixed-webpack": "^3.8.5",
+    "usb": "^1.3.3"
   },
   "devDependencies": {
-    "electron": "latest"
+    "electron": "latest",
+    "electron-builder": "^20.29.0",
+    "electron-rebuild": "^1.8.2"
   }
 }

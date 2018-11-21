@@ -3,14 +3,15 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/angular-csp.css">
-    <link rel="stylesheet" href="css/fontawesome-all.min.css">
+    <link rel="stylesheet" href="skin/css/bootstrap.min.css">
+    <link rel="stylesheet" href="skin/css/angular-csp.css">
+    <link rel="stylesheet" href="skin/css/fontawesome-all.min.css">
     <link href="https://fonts.googleapis.com/css?family=Noto+Sans" rel="stylesheet">
-    <link rel="stylesheet" href="css/bakechain.css">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,300" rel="stylesheet">
+    <link rel="stylesheet" href="skin/css/sweet-alert.css">
+    <link rel="stylesheet" href="skin/css/bakechain.css">
     <title>BakeChain - Baker App</title>
   </head>
-
   <body>
     <div class="background">
       <div class="background2"></div>
@@ -18,31 +19,30 @@
     <div class="container">
       <div id="area" ng-view></div>
     </div>
-    
     <div id="loadingSpinnerContainer">
       <div class="bg"></div>
       <div id="loading-bar-spinner" class="spinner"><div class="spinner-icon"></div></div>
     </div>
     <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
-
-    <script src="js/jquery/jquery.min.js"></script>
-    <script src="js/bootstrap/bootstrap.min.js"></script>
-    <script src="js/angular/angular.min.js"></script>
-    
-    <script src="js/bakechain.js"></script>
-    <script src="js/eztz.min.js"></script>
+    <script src="skin/js/bakechain.js"></script>
+    <script src="skin/js/baker.js"></script>
+    <script src="skin/js/eztz.min.js"></script>
     <script src="env.js"></script>
-    <script src="js/blockies.min.js"></script>
-    <script src="js/baker.js"></script>
-    <script src="js/sjcl.js"></script>
-    
-    
+    <script src="skin/js/ledger.xtz.js"></script>
+    <script src="skin/js/sjcl.js"></script>
+    <script src="skin/js/blockies.min.js"></script>
+    <script src="skin/js/sweet-alert.min.js"></script>
+    <script src="skin/js/jquery.min.js"></script>
+    <script src="skin/js/underscore.js"></script>
+    <script src="skin/js/bootstrap.min.js"></script>
+    <script src="skin/js/angular.min.js"></script>
     <script src="app/modules/angular-route.min.js"></script>
     <script src="app/modules/angular-blockies.js"></script>
+    <script src="app/modules/angular-sweet-alert.js"></script>
     <script src="app/app.js"></script>
     <script src="app/services/storage.js"></script>
-    <script src="app/controllers/controllers.js"></script>
-    
+    <script src="app/services/lang.js"></script>
+    <script src="app/controllers.js"></script>
     <script>if (window.module) module = window.module;</script>
   </body>
 </html>

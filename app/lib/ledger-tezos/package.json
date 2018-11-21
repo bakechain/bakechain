@@ -1,0 +1,20 @@
+{
+  "name": "ledger-tezos",
+  "version": "1.0.0",
+  "description": "Ledger Hardware Wallet Tezos Application API",
+  "main": "index.js",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@ledgerhq/hw-transport": "^4.23.0-beta.8aebcc0d"
+  },
+  "devDependencies": {
+    "flow-bin": "^0.68.0",
+    "flow-typed": "^2.4.0"
+  },
+  "scripts": {
+    "flow": "flow",
+    "clean": "bash ../../script/clean.sh",
+    "build": "bash ../../script/build.sh",
+    "watch": "bash ../../script/watch.sh"
+  }
+}
