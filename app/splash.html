@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+    .rounded-box{
+      overflow:hidden;
+      width:380px;
+      height: 280px;
+      position:relative;
+      overflow: hidden;
+      background-image: url("skin/images/loader.jpg");
+      background-size: cover;
+      border-radius:10px;
+          box-shadow: 0 5px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19) !important;
+          background-color:#fff;
+    }
+      #loading-bar-spinner.spinner {
+          left: 50%;
+          margin-left: -20px;
+          top: 65%;
+          margin-top: -40px;
+          position: absolute;
+          z-index: 19 !important;
+          animation: loading-bar-spinner 400ms linear infinite;
+      }
+      #loading-bar-spinner.spinner .spinner-icon {
+          width: 40px;
+          height: 40px;
+          border:  solid 4px transparent;
+          border-top-color:  #F06EAA !important;
+          border-left-color: #F06EAA !important;
+          border-radius: 50%;
+      }
+      @keyframes loading-bar-spinner {
+        0%   { transform: rotate(0deg);   transform: rotate(0deg); }
+        100% { transform: rotate(360deg); transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="rounded-box">
+      <div id="loading-bar-spinner" class="spinner"><div class="spinner-icon"></div></div>
+    </div>
+  </body>
+</html>

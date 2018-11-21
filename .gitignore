@@ -1,4 +1,2 @@
-node_modules/
-coverage/
-tests/
+node_modules2/*
 releases/
