@@ -6,14 +6,14 @@ Bakechain is a multi-platform, secure light "baker" for the [Tezos protocol](htt
 
 Follow [@BakeChain](https://twitter.com/BakeChain) on Twitter to keep up to date with the latest announcements.
 
-**Please note - BakeChain is currently in beta. Although we have taken many safety precautions, you use this software at your own risk.**
+**Please note - Although we have taken many safety precautions, you use this software at your own risk.**
 
 ## Installing
-**Note - currently only available for Windows 7 and above - we are currently working on a macOS and Linux build.**
+**Note - currently only available for Windows and MacOS - we are currently working on a Linux build.**
 
-You can check out our [latest releases](https://github.com/bakechain/bakechain/releases) to download and get started.
+You can check out our [latest releases](https://github.com/bakechain/bakechain/releases/latest) to download and get started.
 
-Once downloaded, extract the contents, and run **bakechain_app_VERSION.exe**
+Once downloaded, just run - you may be asked to confirm that you want to open and run this file.
 
 ## Documentation
 
@@ -21,7 +21,9 @@ Once downloaded, extract the contents, and run **bakechain_app_VERSION.exe**
 
 **1) Download and install Bakechain using the instructions above**
 
-**2) Generate a new baker, or restore your existing baker. If you are restoring a baker then here are some tips**
+**2) After running the software, we recommend that you complete an initial hardware test. This will determine your hardware's ability to bake**
+
+**3) Link your Ledger, generate a new baker, or restore your existing baker. If you are restoring a baker then here are some tips**
 
 _To export the secret/private key from the tezos-client, you can run the following command:_
 ```no-highlight
@@ -37,11 +39,13 @@ _To export the secret/private key from the tezos-client, you can run the followi
 
 **_You can also enter the activation code from the KYC/AML process if your account hasn't already been activated_**
 
-**3) Top up your baker**
+**_We recommend the use of a hardware device/Ledger Nano S_**
+
+**4) Top up your baker**
 
 If your baker has a low balance, please top it up. To register as a baker you can't have a 0 balance account, and to begin baking you need at least 10,000XTZ (1 roll) minimum
 
-**4) Hit the "Start Baking" button to initiate the baker**
+**5) Hit the "Start Baking" button to initiate the baker**
 
 You will begin baking blocks on Tezos as soon as you gain rights (this could take up to 7 cycles/20 days). In future, you will be able to get listed on the Bakechain Marketplace and earn additional returns as a delegation service.
 
