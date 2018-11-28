@@ -20,7 +20,7 @@ app
     function(isConfirm){
       if (isConfirm){
         window.showLoader();
-        testHashRate().then(function(r){
+        window.BCBaker.test().then(function(r){
           var rates = [
             ["This is not enough to run BakeChain efficiently.", "error"],
             ["This is a relatively low hash rate, and you are at risk of missing blocks.", "warning"],
@@ -29,10 +29,10 @@ app
             ["This is an Excellent hash rate with minimal block misses.", "success"],
           ];
           var rr = 0;
-          if (r < 30) rr = 0;
-          else if (r < 50) rr = 1;
-          else if (r < 80) rr = 2;
-          else if (r < 120) rr = 3;
+          if (r < 10) rr = 0;
+          else if (r < 30) rr = 1;
+          else if (r < 50) rr = 2;
+          else if (r < 65) rr = 3;
           else rr = 4;
           SweetAlert.swal({
             title: "Your results",
@@ -241,7 +241,7 @@ app
     });
     eztz.rpc.call('/chains/main/blocks/head/context/delegates/'+pkh).then(function(r){
       if (r.deactivated) {
-        window.eztz.rpc.registerDelegate({pk : keys.pk, pkh : keys.pkh, sk : false}, 0).then(ledgerSign);
+        window.eztz.rpc.registerDelegate({pk : keys.pk, pkh : keys.pkh, sk : ($scope.type == 'encrypted' ? keys.sk : false)}, 10000).then(ledgerSign);
       } else {
         registeredDelegate = true;
       }
@@ -281,7 +281,7 @@ app
       }
     }).catch(function(e){
       if (!registeredDelegate){
-        window.eztz.rpc.registerDelegate({pk : keys.pk, pkh : keys.pkh, sk : false}, 0).then(function(r){
+        window.eztz.rpc.registerDelegate({pk : keys.pk, pkh : keys.pkh, sk : ($scope.type == 'encrypted' ? keys.sk : false)}, 10000).then(function(r){
           registeredDelegate = true;
           ledgerSign(r);
           $scope.isEmpty = false;
@@ -295,54 +295,58 @@ app
       }
     });
     
-    ps.push(eztz.rpc.call('/chains/main/blocks/head/header'))
-    ps.push($http.get(window.API_URL+"/total_bakings/"+pkh))
-    ps.push($http.get(window.API_URL+"/bakings/"+pkh))
-    ps.push($http.get(window.API_URL+"/total_endorsements/"+pkh))
-    ps.push($http.get(window.API_URL+"/bakings_endorsement/"+pkh))
-    ps.push($http.get(window.API_URL+"/rewards_split_cycles/"+pkh))
-    ps.push(eztz.rpc.call('/chains/main/blocks/head/helpers/baking_rights?delegate='+pkh))
-    ps.push(eztz.rpc.call('/chains/main/blocks/head/helpers/endorsing_rights?delegate='+pkh))
-    Promise.all(ps).then(function(values) {
+    eztz.rpc.call('/chains/main/blocks/head/header').then(function(r){
       $scope.$apply(function(){
-        $scope.baker.cycle = Math.floor((values[0].level-2)/window.CONSTANTS.cycle_length);
-        $scope.baker.level = values[0].level;
-         
-        if (values[1].status == 200 && values[1].data.length){
-          $scope.baker.bakes = values[1].data[0].count.count_main;
-          $scope.baker.misses = values[1].data[0].count.count_miss;
-          $scope.baker.steals = values[1].data[0].count.count_steal;
-        }
-        if (values[2].status == 200 && values[2].data.length){
-          $scope.baker.current = values[2].data;
-        }
-          
-        if (values[3].status == 200 && values[3].data.length){
-          $scope.baker.endorsements = values[3].data[0].slots.count_all;
-        }
-        if (values[4].status == 200 && values[4].data.length){
-          $scope.baker.currentEds = values[4].data;
-        }
-          
-        if (values[5].status == 200 && values[5].data.length){
-          $scope.baker.payouts = values[5].data.slice(5);
-        }
-        
-        if (values[6].length > 0){
-          $scope.baker.nextBake = values[6][0].level + "/" +values[6][0].priority;
-        } else {
-          $scope.baker.nextBake = "N/A";
-        }
-        if (values[7].length > 0){
-          $scope.baker.nextEndorse = values[7][0].level;
-        } else {
-          $scope.baker.nextEndorse = "N/A";
-        }
-        window.hideLoader();
+        $scope.baker.cycle = Math.floor((r.level-2)/window.CONSTANTS.cycle_length);
+        $scope.baker.level = r.level;
       });
-    }).catch(function(e){
-      window.hideLoader();
     });
+    
+    eztz.rpc.call('/chains/main/blocks/head/helpers/baking_rights?delegate='+pkh).then(function(r){
+      $scope.$apply(function(){
+        if (r.length)
+          $scope.baker.nextBake = r[0].level + "/" +r[0].priority;
+        else
+          $scope.baker.nextBake = "N/A";
+      });
+    });
+    eztz.rpc.call('/chains/main/blocks/head/helpers/endorsing_rights?delegate='+pkh).then(function(r){
+      $scope.$apply(function(){
+        if (r.length)
+          $scope.baker.nextEndorse = r[0].level;
+        else
+          $scope.baker.nextEndorse = "N/A";
+      });
+    });
+    
+    $http.get(window.API_URL+"/total_bakings/"+pkh).then(function(r){
+        if (r.status == 200 && r.data.length){
+          $scope.baker.bakes = r.data[0].count.count_all;
+          $scope.baker.misses = r.data[0].count.count_miss;
+          $scope.baker.steals = r.data[0].count.count_steal;
+        }
+    });
+    $http.get(window.API_URL+"/bakings/"+pkh).then(function(r){
+        if (r.status == 200 && r.data.length){
+          $scope.baker.current = r.data;
+        }
+    });
+    $http.get(window.API_URL+"/total_endorsements/"+pkh).then(function(r){
+        if (r.status == 200 && r.data.length){
+          $scope.baker.endorsements = r.data[0].slots.count_all;
+        }
+    });
+    $http.get(window.API_URL+"/bakings_endorsement/"+pkh).then(function(r){
+        if (r.status == 200 && r.data.length){
+          $scope.baker.currentEds = r.data;
+        }
+    });
+    $http.get(window.API_URL+"/rewards_split_cycles/"+pkh).then(function(r){
+        if (r.status == 200 && r.data.length){
+          $scope.baker.payouts = r.data.slice(5);
+        }
+    });
+    window.hideLoader();
   };
   $scope.showPer = function(a,b){
     return (b == 0 ? $scope.formatPercent(0) : $scope.formatPercent(a/b));
@@ -364,7 +368,7 @@ app
   $scope.startBaker = function(){
     startBaking = true;
     $scope.status = 3;
-    bakerCt = window.runBaker(keys);
+    bakerCt = window.BCBaker.start(keys);
   }
   $scope.stopBaker = function(){
     $scope.status = 2;
